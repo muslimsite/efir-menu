@@ -9,18 +9,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&family=Marck+Script&display=swap" rel="stylesheet">
 <style>
+
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #120a0d; }
   ::selection { background: rgba(201,162,75,.3); color: #fff; }
+  @keyframes om-float { 0%,100% { transform: translateY(0) rotate(0deg); opacity: .35; } 50% { transform: translateY(-30px) rotate(160deg); opacity: .85; } }
   @keyframes om-drift { 0% { transform: translate(0,0) rotate(0deg); opacity: 0; } 12% { opacity: .7; } 88% { opacity: .6; } 100% { transform: translate(40px,-120px) rotate(200deg); opacity: 0; } }
   @keyframes om-pulse { 0%,100% { opacity: .5; transform: translateY(0); } 50% { opacity: 1; transform: translateY(4px); } }
+  @keyframes om-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.045); } }
   @keyframes om-shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+  @keyframes om-glow { 0%,100% { box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(201,162,75,.25), 0 0 38px rgba(201,162,75,.10); } 50% { box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(201,162,75,.45), 0 0 60px rgba(201,162,75,.22); } }
   .om-scroll::-webkit-scrollbar { width: 10px; }
   .om-scroll::-webkit-scrollbar-thumb { background: rgba(201,162,75,.35); border-radius: 8px; }
   .om-scroll::-webkit-scrollbar-track { background: transparent; }
+  @keyframes om-sway { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(1.4deg); } }
   @keyframes om-fl-a { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(1.3deg); } }
   @keyframes om-fl-b { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(12px) rotate(-1.2deg); } }
   @keyframes om-fl-c { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-9px) scale(1.025); } }
+  @keyframes om-fadein { 0% { opacity: 0; } 100% { opacity: 1; } }
   @keyframes om-pet-a { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(8deg); } }
   @keyframes om-pet-b { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(11px) rotate(-9deg); } }
   @keyframes om-pet-c { 0%,100% { transform: translate(0,0) rotate(0deg); } 33% { transform: translate(6px,-6px) rotate(7deg); } 66% { transform: translate(-4px,4px) rotate(-5deg); } }
@@ -28,36 +34,126 @@
   @keyframes om-modal-in { 0% { opacity: 0; transform: translateY(18px) scale(.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes om-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   @keyframes om-check { 0% { stroke-dashoffset: 60; } 100% { stroke-dashoffset: 0; } }
-  @keyframes om-fadein { 0% { opacity: 0; } 100% { opacity: 1; } }
-  @keyframes om-converge { 0% { transform: translate(var(--from-x,-200px),var(--from-y,-160px)) rotate(var(--from-rot,0deg)) scale(.6); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(0,0) rotate(0deg) scale(1); opacity: var(--final-op,.9); } }
 
-  /* scroll reveal */
-  [data-reveal] { opacity: 0; transition: opacity 900ms cubic-bezier(.2,.7,.3,1), transform 900ms cubic-bezier(.2,.7,.3,1); will-change: opacity, transform; }
+  /* ============ SCROLL STORYTELLING ============ */
+  /* base reveal — invisible until [data-reveal-in="1"] is set by IntersectionObserver */
+  [data-reveal] {
+    opacity: 0;
+    transition: opacity 900ms cubic-bezier(.2,.7,.3,1), transform 900ms cubic-bezier(.2,.7,.3,1), filter 900ms ease;
+    will-change: opacity, transform;
+  }
   [data-reveal="rise"] { transform: translateY(28px); }
   [data-reveal="rise-sm"] { transform: translateY(14px); }
-  [data-reveal="zoom"] { transform: scale(.94); }
+  [data-reveal="fall"] { transform: translateY(-22px); }
   [data-reveal="fade"] { transform: none; }
-  [data-reveal-in="1"] { opacity: 1 !important; transform: none !important; }
+  [data-reveal="zoom"] { transform: scale(.92); }
+  [data-reveal="char"] { display: inline-block; transform: translateY(-22px); opacity: 0; transition: opacity 700ms cubic-bezier(.2,.7,.3,1), transform 700ms cubic-bezier(.2,.7,.3,1); will-change: opacity, transform; }
+  [data-reveal="draw"] {
+    -webkit-mask-image: linear-gradient(115deg, transparent 0%, transparent 32%, #000 62%, #000 100%);
+            mask-image: linear-gradient(115deg, transparent 0%, transparent 32%, #000 62%, #000 100%);
+    -webkit-mask-size: 240% 240%;
+            mask-size: 240% 240%;
+    -webkit-mask-position: 100% 100%;
+            mask-position: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    transition: -webkit-mask-position 1.8s cubic-bezier(.2,.7,.3,1), mask-position 1.8s cubic-bezier(.2,.7,.3,1);
+  }
+  [data-reveal="ribbon"] { transform: scaleX(0); transform-origin: center; transition: transform 1.2s cubic-bezier(.25,.8,.3,1), opacity 700ms ease; }
+  [data-reveal="ribbon"][data-reveal-in="1"] { transform: scaleX(1); }
+  /* ribbon image that unfurls under the share heading — soft fade at the ends */
+  .om-ribbon-img {
+    display: block; margin: 0 auto;
+    width: clamp(140px, 20vw, 200px); height: auto;
+    filter: drop-shadow(0 14px 24px rgba(0,0,0,.55));
+  }
+  [data-reveal-in="1"] { opacity: 1; }
+  [data-reveal="rise"][data-reveal-in="1"],
+  [data-reveal="rise-sm"][data-reveal-in="1"],
+  [data-reveal="fall"][data-reveal-in="1"],
+  [data-reveal="zoom"][data-reveal-in="1"] { transform: none; }
+  [data-reveal="char"][data-reveal-in="1"] { transform: none; opacity: 1; }
+  [data-reveal="draw"][data-reveal-in="1"] { -webkit-mask-position: 0% 0%; mask-position: 0% 0%; }
+  [data-reveal="ribbon"][data-reveal-in="1"] { transform: scaleX(1); }
 
-  .om-cta { transition: transform .3s ease; }
-  .om-cta:hover { transform: translateY(-2px); }
-  .om-sharebtn { transition: background .25s ease; }
-  .om-sharebtn:hover { background: rgba(201,162,75,.18) !important; }
-  input:focus, textarea:focus { border-color: rgba(201,162,75,.8) !important; }
+  /* cinematic intro for first-screen petals — each defines --from-x/--from-y inline */
+  @keyframes om-converge {
+    0% { transform: translate(var(--from-x, -200px), var(--from-y, -160px)) rotate(var(--from-rot, 0deg)) scale(.6); opacity: 0; }
+    25% { opacity: 1; }
+    100% { transform: translate(0,0) rotate(0deg) scale(1); opacity: var(--final-op, .9); }
+  }
+  .om-intro-petal { animation: om-converge 1.8s cubic-bezier(.2,.7,.3,1) both, var(--float, om-pet-c) var(--float-dur, 12s) ease-in-out 1.6s infinite; }
 
+  /* CTA pulse ring — wraps the button, appears with it */
+  @keyframes om-cta-ring {
+    0% { transform: translate(-50%,-50%) scale(.85); opacity: 0; }
+    20% { opacity: .55; }
+    100% { transform: translate(-50%,-50%) scale(1.55); opacity: 0; }
+  }
+  .om-cta-wrap { position: relative; display: inline-block; }
+  .om-cta-wrap[data-reveal-in="1"]::before,
+  .om-cta-wrap[data-reveal-in="1"]::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 100%; height: 100%;
+    border-radius: 8px; border: 1px solid rgba(247,231,180,.45);
+    transform: translate(-50%,-50%) scale(.85); opacity: 0; pointer-events: none;
+    animation: om-cta-ring 2.6s ease-out 200ms 3;
+  }
+  .om-cta-wrap[data-reveal-in="1"]::after { animation-delay: 1s; }
+
+  /* parallax wrapper — JS sets --py per scroll, no animation when --py is unset */
+  .om-parallax { transform: translate3d(0, var(--py, 0px), 0); will-change: transform; }
+
+  /* ============ WEEK FLIP CARDS ============ */
+  .om-week { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 700px; margin: 0 auto; }
+  .om-daycard { perspective: 1100px; cursor: pointer; height: 210px; flex: 0 0 152px; width: 152px; }
+  .om-dc-inner { position: relative; width: 100%; height: 100%; transition: transform .75s cubic-bezier(.45,.05,.2,1); transform-style: preserve-3d; }
+  .om-daycard.is-flipped .om-dc-inner { transform: rotateY(180deg); }
+  .om-daycard:hover .om-dc-inner { box-shadow: 0 20px 40px rgba(0,0,0,.4); }
+  @media (max-width: 760px) {
+    .om-week { gap: 10px; }
+    .om-daycard { flex: 0 0 calc(50% - 5px); width: calc(50% - 5px); height: 184px; }
+  }
+
+  /* ribbon banner that unfurls behind the share heading */
+  .om-unfurl-banner {
+    height: 4px; background: linear-gradient(90deg, transparent, #c9a24b 18%, #fff4cf 50%, #c9a24b 82%, transparent);
+    margin: 0 auto; max-width: 320px; opacity: .85;
+  }
+
+  image-slot { display: block; width: 100% !important; height: 100% !important; }
   @media (max-width: 760px) {
     .om-hide-mobile { display: none !important; }
+    .om-shrink-mobile { transform: scale(.6) !important; transform-origin: var(--om-origin, center) !important; }
     .om-half-mobile { width: 60% !important; height: auto !important; }
+    /* mobile: everything appears immediately, no parallax, no draw mask, no intro flight */
     [data-reveal] { opacity: 1 !important; transform: none !important; }
+    [data-reveal="char"] { display: inline; transform: none !important; opacity: 1 !important; }
+    [data-reveal="draw"] { -webkit-mask-image: none !important; mask-image: none !important; }
+    [data-reveal="ribbon"] { transform: none !important; }
+    .om-intro-petal { animation: none !important; }
+    .om-parallax { transform: none !important; }
+    .om-cta-wrap[data-reveal-in="1"]::before, .om-cta-wrap[data-reveal-in="1"]::after { display: none !important; }
+  }
+  @media (max-width: 480px) {
+    .om-shrink-mobile { transform: scale(.45) !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+    [data-reveal="char"] { display: inline; }
+    [data-reveal="draw"] { -webkit-mask-image: none !important; mask-image: none !important; }
+    .om-intro-petal { animation: none !important; }
+    .om-parallax { transform: none !important; }
   }
+
+  /* focus styles (заменяют style-focus из конструктора) */
+  input:focus, textarea:focus { border-color: rgba(201,162,75,.8) !important; outline: none; }
+  .om-cta:hover { transform: translateY(-2px); }
+  .om-sharebtn { transition: background .25s ease; }
+  .om-sharebtn:hover { background: rgba(201,162,75,.18) !important; }
 </style>
 </head>
 <body>
 
-<!-- floating background petals -->
 <div style="position: fixed; inset: 0; overflow: hidden; background: radial-gradient(120% 90% at 50% 0%, #2a1118 0%, #1a0c11 45%, #0e0608 100%); z-index: 0;">
   <div style="position: absolute; inset: 0; background: radial-gradient(80% 60% at 50% 42%, rgba(110,18,40,.28), transparent 70%);"></div>
   <span style="position: absolute; left: 8%; top: 18%; width: 14px; height: 18px; border-radius: 50% 50% 50% 2px; background: radial-gradient(circle at 35% 30%, #d792a3, #9c2c46); filter: blur(.4px); animation: om-drift 14s ease-in-out infinite;"></span>
@@ -72,402 +168,690 @@
   <span style="position: absolute; left: 66%; top: 34%; width: 10px; height: 14px; border-radius: 50% 50% 50% 2px; background: radial-gradient(circle at 35% 30%, #e0b478, #9c5a2e); filter: blur(.45px); animation: om-drift 16.5s ease-in-out 4.3s infinite;"></span>
 </div>
 
-<!-- ENVELOPE SCENE -->
-<div id="scene" style="position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 800ms cubic-bezier(.65,.05,.18,1), transform 800ms cubic-bezier(.65,.05,.18,1), filter 800ms cubic-bezier(.65,.05,.18,1);">
-  <img aria-hidden="true" src="flowers/pet-03.png" alt="" class="om-half-mobile" style="position: absolute; left: 6%; top: 14%; width: 130px; opacity: .92; pointer-events: none; z-index: 1; transform: rotate(-22deg); animation: om-pet-c 11s ease-in-out infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
-  <img aria-hidden="true" src="flowers/pet-06.png" alt="" class="om-half-mobile" style="position: absolute; right: 8%; top: 12%; width: 120px; opacity: .9; pointer-events: none; z-index: 1; transform: rotate(28deg); animation: om-pet-d 13s ease-in-out infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
-  <img aria-hidden="true" src="flowers/pet-08.png" alt="" class="om-half-mobile" style="position: absolute; left: 14%; top: 48%; width: 95px; opacity: .88; pointer-events: none; z-index: 1; transform: rotate(38deg); animation: om-pet-a 9s ease-in-out infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
-  <img aria-hidden="true" src="flowers/pet-09.png" alt="" class="om-half-mobile" style="position: absolute; right: 10%; top: 56%; width: 105px; opacity: .88; pointer-events: none; z-index: 1; transform: rotate(-12deg); animation: om-pet-b 10s ease-in-out infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
-  <img aria-hidden="true" src="flowers/pet-11.png" alt="" class="om-half-mobile" style="position: absolute; left: 18%; bottom: 16%; width: 100px; opacity: .9; pointer-events: none; z-index: 1; transform: rotate(56deg); animation: om-pet-c 12s ease-in-out infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
-  <img aria-hidden="true" src="flowers/pet-12.png" alt="" class="om-half-mobile" style="position: absolute; right: 16%; bottom: 14%; width: 95px; opacity: .9; pointer-events: none; z-index: 1; transform: rotate(-42deg); animation: om-pet-d 11s ease-in-out infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
-  <img aria-hidden="true" src="flowers/pet-05.png" alt="" class="om-hide-mobile" style="position: absolute; left: 32%; top: 8%; width: 70px; opacity: .85; pointer-events: none; z-index: 1; transform: rotate(8deg); animation: om-pet-a 10s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.4));">
-  <img aria-hidden="true" src="flowers/pet-13.png" alt="" class="om-hide-mobile" style="position: absolute; right: 30%; bottom: 8%; width: 75px; opacity: .85; pointer-events: none; z-index: 1; transform: rotate(-58deg); animation: om-pet-b 9s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.4));">
+<!-- ===================== ENVELOPE SCENE ===================== -->
+<div id="scene" style="position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 800ms cubic-bezier(.65,.05,.18,1),transform 800ms cubic-bezier(.65,.05,.18,1),filter 800ms cubic-bezier(.65,.05,.18,1);">
+
+  <!-- scattered individual petals around the envelope: each «flies in» to its rest position on load (cinematic intro), then keeps floating -->
+  <img aria-hidden="true" src="flowers/pet-03.png" alt="" class="om-half-mobile om-intro-petal" style="--from-x: -360px; --from-y: -260px; --from-rot: -90deg; --final-op: .92; --float: om-pet-c; --float-dur: 11s; position: absolute; left: 6%; top: 14%; width: 130px; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
+  <img aria-hidden="true" src="flowers/pet-06.png" alt="" class="om-half-mobile om-intro-petal" style="--from-x: 360px; --from-y: -240px; --from-rot: 80deg; --final-op: .9; --float: om-pet-d; --float-dur: 13s; position: absolute; right: 8%; top: 12%; width: 120px; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));">
+  <img aria-hidden="true" src="flowers/pet-08.png" alt="" class="om-half-mobile om-intro-petal" style="--from-x: -420px; --from-y: 60px; --from-rot: -50deg; --final-op: .88; --float: om-pet-a; --float-dur: 9s; position: absolute; left: 14%; top: 48%; width: 95px; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); animation-delay: 120ms, 1.7s;">
+  <img aria-hidden="true" src="flowers/pet-09.png" alt="" class="om-half-mobile om-intro-petal" style="--from-x: 440px; --from-y: 80px; --from-rot: 60deg; --final-op: .88; --float: om-pet-b; --float-dur: 10s; position: absolute; right: 10%; top: 56%; width: 105px; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); animation-delay: 160ms, 1.74s;">
+  <img aria-hidden="true" src="flowers/pet-11.png" alt="" class="om-half-mobile om-intro-petal" style="--from-x: -300px; --from-y: 360px; --from-rot: 110deg; --final-op: .9; --float: om-pet-c; --float-dur: 12s; position: absolute; left: 18%; bottom: 16%; width: 100px; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); animation-delay: 240ms, 1.82s;">
+  <img aria-hidden="true" src="flowers/pet-12.png" alt="" class="om-half-mobile om-intro-petal" style="--from-x: 320px; --from-y: 340px; --from-rot: -110deg; --final-op: .9; --float: om-pet-d; --float-dur: 11s; position: absolute; right: 16%; bottom: 14%; width: 95px; pointer-events: none; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); animation-delay: 280ms, 1.86s;">
+  <img aria-hidden="true" src="flowers/pet-05.png" alt="" class="om-hide-mobile om-intro-petal" style="--from-x: -120px; --from-y: -360px; --from-rot: -160deg; --final-op: .85; --float: om-pet-a; --float-dur: 10s; position: absolute; left: 32%; top: 8%; width: 70px; pointer-events: none; z-index: 1; filter: drop-shadow(0 6px 12px rgba(0,0,0,.4)); animation-delay: 360ms, 1.94s;">
+  <img aria-hidden="true" src="flowers/pet-13.png" alt="" class="om-hide-mobile om-intro-petal" style="--from-x: 120px; --from-y: 380px; --from-rot: 160deg; --final-op: .85; --float: om-pet-b; --float-dur: 9s; position: absolute; right: 30%; bottom: 8%; width: 75px; pointer-events: none; z-index: 1; filter: drop-shadow(0 6px 12px rgba(0,0,0,.4)); animation-delay: 420ms, 2s;">
+
+  <!-- two single gold branches in opposite corners (no overlap with petals) -->
+  
+  
 
   <div style="position: relative; width: min(95vw, calc(80vh * 1.18), 800px); margin: 0 auto; z-index: 2;">
-    <div id="glow" style="position: absolute; left: 50%; top: 46%; width: 58%; padding-bottom: 58%; transform: translate(-50%,-50%) scale(.4); border-radius: 50%; background: radial-gradient(circle, rgba(247,231,180,.9), rgba(201,162,75,.4) 45%, transparent 70%); filter: blur(8px); pointer-events: none; z-index: 0; opacity: 0; transition: opacity 700ms ease, transform 1050ms cubic-bezier(.65,.05,.18,1);"></div>
+
+    <!-- golden bloom that flares open as the letter is unsealed -->
+    <div id="glow" style="position:absolute;left:50%;top:46%;width:58%;padding-bottom:58%;transform:translate(-50%,-50%) scale(.4);border-radius:50%;background:radial-gradient(circle, rgba(247,231,180,.9), rgba(201,162,75,.4) 45%, transparent 70%);filter:blur(8px);pointer-events:none;z-index:0;opacity:0;transition:opacity 700ms ease, transform 1050ms cubic-bezier(.65,.05,.18,1);"></div>
+
     <div id="envClick" style="cursor: pointer; animation: om-fl-c 9s ease-in-out infinite;">
-      <img id="envImg" src="flowers/envelope.png" alt="Приглашение на эфир" style="display: block; width: 100%; height: auto; transform-origin: 50% 46%; transition: transform 1050ms cubic-bezier(.65,.05,.18,1), opacity 900ms ease, filter 900ms ease; filter: drop-shadow(0 30px 60px rgba(0,0,0,.55));">
+      <img src="flowers/envelope.png" alt="Приглашение на эфир" id="envImg" style="display:block;width:100%;height:auto;transform-origin:50% 46%;transition:transform 1050ms cubic-bezier(.65,.05,.18,1),opacity 900ms ease,filter 900ms ease;filter:drop-shadow(0 30px 60px rgba(0,0,0,.55));">
     </div>
-    <div id="instr" style="margin-top: 46px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: opacity 500ms ease;">
-      <div id="openLabel" style="font-family: 'Marck Script', cursive; font-size: 26px; color: #e7c98e;">Письмо для вас</div>
+
+    <!-- tap to open hint -->
+    <div id="instr" style="margin-top:46px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;transition:opacity 500ms ease;">
+      <div style="font-family: 'Marck Script', cursive; font-size: 26px; color: #e7c98e;"  id="openLabel">Письмо для вас</div>
       <div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .32em; text-transform: uppercase; color: rgba(217,189,126,.7); animation: om-pulse 2.4s ease-in-out infinite;">нажмите, чтобы открыть</div>
     </div>
   </div>
+
+  <!-- velvet ribbon — small accent at the bottom of the first screen -->
+  
 </div>
 
-<!-- THE LETTER -->
-<div id="letter" class="om-scroll" style="position: fixed; inset: 0; z-index: 4; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; opacity: 0; transform: translateY(26px); transition: opacity 900ms ease, transform 900ms cubic-bezier(.65,.05,.18,1); pointer-events: none;">
-  <div style="width: min(92vw, 800px); margin: 0 auto; padding: clamp(40px,7vw,90px) 0 110px;">
+<!-- ===================== THE LETTER ===================== -->
+<div class="om-scroll" id="letter" style="position:fixed;inset:0;z-index:4;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(26px);transition:opacity 900ms ease, transform 900ms cubic-bezier(.65,.05,.18,1);pointer-events:none;">
+  <div style="width: min(92vw, 800px); margin: 0 auto; padding: clamp(40px, 7vw, 90px) 0 110px;">
+
     <div style="position: relative; background: linear-gradient(165deg, #6a1228 0%, #560f22 40%, #420c1b 100%); border-radius: 8px; box-shadow: 0 50px 110px rgba(0,0,0,.6); overflow: hidden;">
       <div style="position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 0%, rgba(170,38,66,.45), transparent 60%); pointer-events: none;"></div>
       <div style="position: absolute; inset: 0; background: radial-gradient(40% 30% at 100% 100%, rgba(120,20,42,.55), transparent 70%); pointer-events: none;"></div>
-      <img src="flowers/corner.png" alt="" style="position: absolute; left: -14px; bottom: -14px; width: clamp(120px,21vw,250px); height: auto; pointer-events: none; filter: drop-shadow(0 14px 28px rgba(0,0,0,.45)); animation: om-fl-a 10s ease-in-out infinite;">
-      <div style="position: absolute; right: -14px; bottom: -14px; width: clamp(120px,21vw,250px); pointer-events: none; transform: scaleX(-1);"><img src="flowers/corner.png" alt="" style="display: block; width: 100%; height: auto; filter: drop-shadow(0 14px 28px rgba(0,0,0,.45)); animation: om-fl-b 12s ease-in-out infinite;"></div>
-      <img aria-hidden="true" src="flowers/br-05.png" alt="" class="om-hide-mobile" style="position: absolute; top: 18px; left: 18px; width: 150px; opacity: .42; pointer-events: none; z-index: 1;">
-      <img aria-hidden="true" src="flowers/br-05.png" alt="" class="om-hide-mobile" style="position: absolute; top: 18px; right: 18px; width: 150px; opacity: .42; pointer-events: none; z-index: 1; transform: scaleX(-1);">
-      <img aria-hidden="true" src="flowers/pet-02.png" alt="" class="om-hide-mobile" style="position: absolute; left: -32px; top: 22%; width: 90px; opacity: .82; pointer-events: none; z-index: 1; transform: rotate(-26deg); animation: om-pet-c 12s ease-in-out infinite;">
-      <img aria-hidden="true" src="flowers/pet-10.png" alt="" class="om-hide-mobile" style="position: absolute; right: -28px; top: 38%; width: 80px; opacity: .8; pointer-events: none; z-index: 1; transform: rotate(34deg); animation: om-pet-d 13s ease-in-out infinite;">
-      <img aria-hidden="true" src="flowers/pet-07.png" alt="" class="om-hide-mobile" style="position: absolute; left: -22px; top: 62%; width: 75px; opacity: .8; pointer-events: none; z-index: 1; transform: rotate(48deg); animation: om-pet-a 11s ease-in-out infinite;">
-      <img aria-hidden="true" src="flowers/pet-14.png" alt="" class="om-hide-mobile" style="position: absolute; right: -22px; top: 78%; width: 70px; opacity: .8; pointer-events: none; z-index: 1; transform: rotate(-30deg); animation: om-pet-b 10s ease-in-out infinite;">
+
+      <!-- real florals: bottom corners -->
+      <img src="flowers/corner.png" alt="" style="position: absolute; left: -14px; bottom: -14px; width: clamp(120px, 21vw, 250px); height: auto; pointer-events: none; filter: drop-shadow(0 14px 28px rgba(0,0,0,.45)); animation: om-fl-a 10s ease-in-out infinite;">
+      <div style="position: absolute; right: -14px; bottom: -14px; width: clamp(120px, 21vw, 250px); pointer-events: none; transform: scaleX(-1);"><img src="flowers/corner.png" alt="" style="display: block; width: 100%; height: auto; filter: drop-shadow(0 14px 28px rgba(0,0,0,.45)); animation: om-fl-b 12s ease-in-out infinite;"></div>
+
+      <!-- gold branches: top corners of the letter card — drawn as lines on reveal -->
+      <img aria-hidden="true" src="flowers/br-05.png" alt="" data-reveal="draw" class="om-hide-mobile" style="position: absolute; top: 18px; left: 18px; width: 150px; opacity: .42; pointer-events: none; z-index: 1; transform: rotate(0deg);">
+      <img aria-hidden="true" src="flowers/br-05.png" alt="" data-reveal="draw" class="om-hide-mobile" style="position: absolute; top: 18px; right: 18px; width: 150px; opacity: .42; pointer-events: none; z-index: 1; transform: scaleX(-1);">
+
+      <!-- scattered single petals around the letter card edges — each wrapped in a parallax shell (JS sets --py on scroll) -->
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="0.18" style="position: absolute; left: -32px; top: 22%; width: 90px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-02.png" alt="" style="display: block; width: 100%; opacity: .82; transform: rotate(-26deg); animation: om-pet-c 12s ease-in-out infinite;"></div>
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="-0.12" style="position: absolute; right: -28px; top: 38%; width: 80px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-10.png" alt="" style="display: block; width: 100%; opacity: .8; transform: rotate(34deg); animation: om-pet-d 13s ease-in-out infinite;"></div>
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="0.22" style="position: absolute; left: -22px; top: 62%; width: 75px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-07.png" alt="" style="display: block; width: 100%; opacity: .8; transform: rotate(48deg); animation: om-pet-a 11s ease-in-out infinite;"></div>
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="-0.16" style="position: absolute; right: -22px; top: 78%; width: 70px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-14.png" alt="" style="display: block; width: 100%; opacity: .8; transform: rotate(-30deg); animation: om-pet-b 10s ease-in-out infinite;"></div>
+
+      <!-- gold double frame -->
       <div style="position: absolute; inset: 16px; border: 1px solid rgba(201,162,75,.55); border-radius: 4px; pointer-events: none;"></div>
       <div style="position: absolute; inset: 22px; border: 1px solid rgba(201,162,75,.22); border-radius: 2px; pointer-events: none;"></div>
 
-      <div style="position: relative; padding: clamp(40px,6vw,78px) clamp(26px,6vw,76px);">
-        <div style="display: flex; justify-content: center; margin: -8px auto clamp(20px,3vw,34px);" data-reveal="zoom">
-          <img src="flowers/swag.png" alt="" style="width: clamp(230px,46vw,440px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.45)); animation: om-fl-c 8s ease-in-out infinite;">
+      <div style="position: relative; padding: clamp(40px, 6vw, 78px) clamp(26px, 6vw, 76px);">
+
+        <!-- floral crown -->
+        <div style="display: flex; justify-content: center; margin: -8px auto clamp(20px, 3vw, 34px);">
+          <img src="flowers/swag.png" alt="" style="width: clamp(230px, 46vw, 440px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.45)); animation: om-fl-c 8s ease-in-out infinite;">
         </div>
-        <div id="greet" style="display: none; text-align: center; margin-bottom: 30px;" data-reveal="rise-sm">
-          <div id="greetLine" style="font-family: 'Marck Script', cursive; font-size: clamp(26px,5vw,36px); color: #e7c98e;"></div>
-          <div id="persoMsg" style="display: none; max-width: 440px; margin: 12px auto 0; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 20px; line-height: 1.5; color: #ecdcc4;"></div>
+
+        <!-- personalized greeting -->
+        <div id="greet" style="display:none;text-align:center;margin-bottom:30px;">
+          <div style="font-family: 'Marck Script', cursive; font-size: clamp(26px, 5vw, 36px); color: #e7c98e;"></div>
+          <div id="persoMsg" style="display:none;max-width:440px;margin:12px auto 0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;line-height:1.5;color:#ecdcc4;"></div>
           <div style="width: 56px; height: 1px; margin: 22px auto 0; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
         </div>
-        <div style="text-align: center; font-family: 'Spectral', serif; font-size: clamp(12px,1.6vw,15px); letter-spacing: .42em; text-transform: uppercase; color: #d9bd7e;" data-reveal="fade">Бесплатный прямой эфир</div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin: 22px 0 26px;" data-reveal="fade">
+
+        <!-- eyebrow -->
+        <div data-reveal="rise" style="text-align: center; font-family: 'Spectral', serif; font-size: clamp(12px, 1.6vw, 15px); letter-spacing: .42em; text-transform: uppercase; color: #d9bd7e;">Бесплатный прямой эфир</div>
+
+        <div data-reveal="fade" style="transition-delay: 120ms; display: flex; align-items: center; justify-content: center; gap: 14px; margin: 22px 0 26px;">
           <div style="width: 70px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b);"></div>
           <div style="width: 7px; height: 7px; transform: rotate(45deg); background: #c9a24b; box-shadow: 0 0 12px rgba(201,162,75,.6);"></div>
           <div style="width: 70px; height: 1px; background: linear-gradient(90deg, #c9a24b, transparent);"></div>
         </div>
-        <h1 style="margin: 0; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px,6.2vw,60px); line-height: 1.08; color: #f7eedd; letter-spacing: .005em;" data-reveal="rise">5 шагов, как навсегда избавиться от вопроса <span style="display: block; margin-top: 6px; font-style: italic; background: linear-gradient(95deg,#b48b34,#f4e3a4,#c9a24b,#fff4cf,#b48b34); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: om-shimmer 7s linear infinite;">«Что приготовить?»</span></h1>
-        <p style="max-width: 600px; margin: 34px auto 0; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(16px,2vw,19px); line-height: 1.78; color: #ecdcc4;" data-reveal="rise">Эфир для сестёр, которые устали каждый день ломать голову над готовкой, хотят меньше времени проводить на кухне и при этом кормить семью вкусно, разнообразно и без постоянного стресса.</p>
-        <div style="margin: 36px auto 0; max-width: 420px; text-align: center; padding: 14px 22px; border: 1px solid rgba(201,162,75,.35); border-radius: 4px; background: rgba(0,0,0,.18);" data-reveal="zoom">
+
+        <!-- title -->
+        <h1 data-reveal="rise" style="transition-delay: 200ms; margin: 0; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px, 6.2vw, 60px); line-height: 1.08; color: #f7eedd; letter-spacing: .005em;">5 шагов, как навсегда избавиться от вопроса <span style="display: block; margin-top: 6px; font-style: italic; background: linear-gradient(95deg, #b48b34, #f4e3a4, #c9a24b, #fff4cf, #b48b34); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: om-shimmer 7s linear infinite;">«Что приготовить?»</span></h1>
+
+        <p data-reveal="rise" style="transition-delay: 380ms; max-width: 600px; margin: 34px auto 0; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(16px, 2vw, 19px); line-height: 1.78; color: #ecdcc4;">Эфир для сестёр, которые устали каждый день ломать голову над готовкой, хотят меньше времени проводить на кухне и при этом кормить семью вкусно, разнообразно и без постоянного стресса.</p>
+
+        <!-- event line -->
+        <div data-reveal="zoom" style="transition-delay: 540ms; margin: 36px auto 0; max-width: 420px; text-align: center; padding: 14px 22px; border: 1px solid rgba(201,162,75,.35); border-radius: 4px; background: rgba(0,0,0,.18);">
           <div style="font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .34em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 6px;">Когда</div>
-          <div id="eventDate" style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: clamp(19px,2.4vw,24px); color: #f7eedd;">19 июля в 19:00 по Мск</div>
+          <div data-event-date style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: clamp(19px, 2.4vw, 24px); color: #f7eedd;"></div>
         </div>
 
-        <div style="margin-top: clamp(48px,7vw,72px);" data-reveal="rise">
-          <h2 style="margin: 0 0 26px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px,3.4vw,34px); color: #f1e4ce;">Этот эфир для вас, если</h2>
+        <!-- ===== Этот эфир для вас, если ===== -->
+        <div style="margin-top: clamp(48px, 7vw, 72px);">
+          <h2 data-reveal="rise" style="margin: 0 0 26px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 34px); color: #f1e4ce;">Этот эфир для вас, если</h2>
           <ul style="list-style: none; margin: 0 auto; padding: 0; max-width: 600px; display: flex; flex-direction: column; gap: 16px;">
-            <li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Каждый день приходится заново думать, что приготовить.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Только приготовили обед, а уже нужно думать про ужин.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Кажется, что вся жизнь проходит между плитой, холодильником и раковиной.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">В семье постоянно готовятся одни и те же блюда.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Вы устали от бесконечных походов в магазин.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Не хватает времени на детей, знания, себя и отдых.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Вам хочется облегчить быт, но не получается выстроить систему.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 80ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Каждый день приходится заново думать, что приготовить.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 180ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Только приготовили обед, а уже нужно думать про ужин.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 280ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Кажется, что вся жизнь проходит между плитой, холодильником и раковиной.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 380ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">В семье постоянно готовятся одни и те же блюда.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 480ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Вы устали от бесконечных походов в магазин.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 580ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Не хватает времени на детей, знания, себя и отдых.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 680ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Вам хочется облегчить быт, но не получается выстроить систему.</span></li>
           </ul>
         </div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: clamp(44px,6.5vw,68px) 0;" data-reveal="fade">
-      <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,162,75,.6));"></div>
-      <img src="flowers/pomegranate.png" alt="" style="width: clamp(118px,17vw,180px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.5)); animation: om-fl-c 8s ease-in-out infinite;">
-      <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, rgba(201,162,75,.6), transparent);"></div>
-    </div>
-        <div data-reveal="rise">
-          <h2 style="margin: 0 0 30px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px,3.4vw,34px); color: #f1e4ce;">Что вы узнаете на эфире</h2>
+
+        <!-- floral medallion -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: clamp(44px, 6.5vw, 68px) 0;">
+          <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,162,75,.6));"></div>
+          <img src="flowers/pomegranate.png" alt="" style="width: clamp(118px, 17vw, 180px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.5)); animation: om-fl-c 7.5s ease-in-out infinite;">
+          <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, rgba(201,162,75,.6), transparent);"></div>
+        </div>
+
+        <!-- ===== ИНТЕРАКТИВ: Неделя без вопроса ===== -->
+        <div style="margin-bottom: clamp(44px, 6.5vw, 68px);">
+          <div data-reveal="rise" style="text-align: center; font-family: 'Spectral', serif; font-size: clamp(11px, 1.5vw, 13px); letter-spacing: .42em; text-transform: uppercase; color: #d9bd7e;">Попробуйте</div>
+          <h2 data-reveal="rise" style="transition-delay: 120ms; margin: 14px 0 8px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 34px); color: #f1e4ce;">Неделя без вопроса «Что приготовить?»</h2>
+          <p data-reveal="rise" style="transition-delay: 220ms; max-width: 520px; margin: 0 auto 30px; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(14px, 1.7vw, 16px); line-height: 1.6; color: #d8c6ac;">Нажмите на любой день — и посмотрите, каким может быть готовое меню.</p>
+
+          <div class="om-week">
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 80ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 1</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Понедельник</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Инсафир-омлет</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Чечевичный суп</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Гречка с говядиной</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 170ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 2</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Вторник</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Овсянка с финиками</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Плов с нутом</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Курица с овощами</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 260ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 3</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Среда</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Сырники с мёдом</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Шурпа из баранины</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Рыбные котлеты</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 350ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 4</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Четверг</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Яичница с лепёшкой</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Маш с тыквой</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Тефтели в томате</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 440ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 5</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Пятница</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Манная каша с изюмом</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Лагман</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Долма с йогуртом</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 530ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 6</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Суббота</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Блины с творогом</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Машхурда</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Шашлык из курицы</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="om-daycard" data-reveal="rise" style="transition-delay: 620ms;">
+            <div class="om-dc-inner">
+              <!-- front -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 6px; border: 1px solid rgba(201,162,75,.4); background: linear-gradient(160deg, #6a1228, #480d1c); box-shadow: inset 0 0 40px rgba(0,0,0,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 14px; text-align: center;">
+                <div style="font-family: 'Spectral', serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #d9bd7e;">День 7</div>
+                <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(19px, 2.4vw, 23px); color: #f7eedd; line-height: 1.08;">Воскресенье</div>
+                <div style="width: 34px; height: 1px; background: linear-gradient(90deg, transparent, #c9a24b, transparent);"></div>
+                <div style="display: flex; align-items: center; gap: 6px; font-family: 'Spectral', serif; font-style: italic; font-size: 11px; color: rgba(217,189,126,.78);"><span style="display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #c9a24b;"></span>нажмите</div>
+              </div>
+              <!-- back -->
+              <div style="position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 6px; border: 1px solid rgba(201,162,75,.55); background: linear-gradient(160deg, #fbf3e4, #efe0c4); display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 16px 14px; text-align: center;">
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Завтрак</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Домашняя выпечка</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Обед</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Самса с тыквой</div>
+            </div>
+            <div style="width: 28px; height: 1px; margin: 0 auto; background: rgba(201,162,75,.5);"></div>
+            <div>
+              <div style="font-family: 'Spectral', serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: #a9742f;">Ужин</div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 15px; color: #5a1022; line-height: 1.18;">Овощное рагу</div>
+            </div>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <p data-reveal="rise" style="transition-delay: 200ms; max-width: 540px; margin: 30px auto 0; text-align: center; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: clamp(17px, 2.2vw, 21px); line-height: 1.5; color: #f0d79a;">Так выглядит неделя, когда меню продумано заранее — никаких «что приготовить?» по утрам.</p>
+        </div>
+
+        <!-- ===== Что вы узнаете ===== -->
+        <div>
+          <h2 data-reveal="rise" style="margin: 0 0 30px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 34px); color: #f1e4ce;">Что вы узнаете на эфире</h2>
           <ul style="list-style: none; margin: 0 auto; padding: 0; max-width: 640px; display: flex; flex-direction: column; gap: 22px;">
-            <li style="display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,2vw,18px); line-height: 1.62; color: #ecdcc4;">Как сделать так, чтобы голова перестала быть постоянно занята готовкой.</span></li><li style="display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,2vw,18px); line-height: 1.62; color: #ecdcc4;">Почему меню облегчает жизнь и как подобрать вариант меню именно под свою семью.</span></li><li style="display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,2vw,18px); line-height: 1.62; color: #ecdcc4;">Как связаны меню, закупки и заготовки.</span></li><li style="display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,2vw,18px); line-height: 1.62; color: #ecdcc4;">Какие простые изменения помогают освободить время и силы.</span></li><li style="display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,2vw,18px); line-height: 1.62; color: #ecdcc4;">Как сделать питание семьи более разнообразным без постоянного поиска новых рецептов.</span></li>
+            <li data-reveal="rise" style="transition-delay: 80ms; display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 2vw, 18px); line-height: 1.62; color: #ecdcc4;">Как сделать так, чтобы голова перестала быть постоянно занята готовкой.</span></li>
+            <li data-reveal="rise" style="transition-delay: 220ms; display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 2vw, 18px); line-height: 1.62; color: #ecdcc4;">Почему меню облегчает жизнь и как подобрать вариант меню именно под свою семью.</span></li>
+            <li data-reveal="rise" style="transition-delay: 360ms; display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 2vw, 18px); line-height: 1.62; color: #ecdcc4;">Как связаны меню, закупки и заготовки.</span></li>
+            <li data-reveal="rise" style="transition-delay: 500ms; display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 2vw, 18px); line-height: 1.62; color: #ecdcc4;">Какие простые изменения помогают освободить время и силы.</span></li>
+            <li data-reveal="rise" style="transition-delay: 640ms; display: flex; gap: 18px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 14px; border-right: 2px solid #e7c98e; border-bottom: 2px solid #e7c98e; transform: rotate(40deg); margin-top: -3px;"></span></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 2vw, 18px); line-height: 1.62; color: #ecdcc4;">Как сделать питание семьи более разнообразным без постоянного поиска новых рецептов.</span></li>
           </ul>
         </div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: clamp(44px,6.5vw,68px) 0;" data-reveal="fade">
-      <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,162,75,.6));"></div>
-      <img src="flowers/artichoke.png" alt="" style="width: clamp(118px,17vw,180px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.5)); animation: om-fl-c 8s ease-in-out infinite;">
-      <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, rgba(201,162,75,.6), transparent);"></div>
-    </div>
-        <div data-reveal="rise">
-          <h2 style="margin: 0 0 34px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px,3.4vw,34px); color: #f1e4ce;">О спикере</h2>
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 22px;">
+
+        <!-- floral medallion -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: clamp(44px, 6.5vw, 68px) 0;">
+          <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,162,75,.6));"></div>
+          <img src="flowers/artichoke.png" alt="" style="width: clamp(118px, 17vw, 180px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.5)); animation: om-fl-c 8.5s ease-in-out infinite;">
+          <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, rgba(201,162,75,.6), transparent);"></div>
+        </div>
+
+        <!-- ===== О спикере ===== -->
+        <div>
+          <h2 data-reveal="rise" style="margin: 0 0 34px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 34px); color: #f1e4ce;">О спикере</h2>
+          <div data-reveal="zoom" style="transition-delay: 100ms; display: flex; flex-direction: column; align-items: center; gap: 22px;">
             <div style="position: relative; width: 196px; height: 196px;">
               <div style="position: absolute; inset: -9px; border-radius: 50%; border: 1px solid rgba(201,162,75,.5);"></div>
               <div style="position: absolute; inset: 0; border-radius: 50%; overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,.5);">
-                <img src="data:image/webp;base64,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" alt="Хадиджа Умм Ильяс" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%;">
+                <img src="data:image/webp;base64,UklGRlo2AABXRUJQVlA4WAoAAAAgAAAA3wEA3wEASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADZWUDggbDQAAJAHAZ0BKuAB4AE+USaQRaOiIZL5XVw4BQSzt29f5urhXJfWnUOOyL6ldxI4if0H/L/5j0//Pv4z/U9Qf709v/i1vt9tmqD8r/Bv7f/C/ux8kPvG8M/3j+i/5/qEfj/9I/xv5k/4T6PHzPnSgP9G/r3+6/xv5RfIh+R5rfxn+y/63uAf0P+3/9Ly2fEJ/Cf9L2B/6F/hf2Y95H/X/bv0nfXf/v/2nwI/z3+7/9v17vZ/+8vtBFWh9DHGaJVJB/v5Kck3yQb/DQKiCeIlJpd/Y6/4yGx8Dwh3V8EfSGqmdnDY6WRGvhdc7Jy9+Lch20PWIyrIxheNl3pVvbBJyngT//sLv/k74doXG2TWT759kgWwkLxtx15YNv5p7nrVwFl/9VFvuIxDKkH6Ejlh3QMYmNYpiWzz9f57Gw8vtkg7qhNAs0R0BxPBgLTJozodaOrxQhkpyT8sIZJ9N/XLI5SyGarRxgFaiqmzwaI4oJ5SbtuATv7VD7r6s7MKCW2B2UIBYUvluKLBur+lvbMhQylg09iXflRoulj47qTRtbhvc7N4K4wK8lNdOJxTj5kyyx4d/pk+hjiZjBaM97LHSIPw2keJdJB+LUuyC4rQtMGAwFxoj5ZrFt9PNRfuMrU9f6PV1Y5xTu5MofY03t83y5YoEBtDo3fu6wBTGTsX8eGKNzPMP15VPJ5H8bVzdSsYQLBvkd4NpH8Jbc5e8btKJyxXeAg97P2yXwVcqaseDdCts68TpXcgc89BL5gYtbKgLfd7JvJO33lQ+cai80KDTwsCbb8/qmCX/O2ozlYkz6fPBmBajGtKzU4cccWxuTA6RMmYb1Yf4Xyopo0QdLnObVuOJOjwOxlKOvTx0cCwE5l+ET1mjuFxmCCX3nB+tg0k660tjTbS6WU5y/EollKtTJfl1gZPXHaxHl1g0oxIJRS9KIJ3CFmoUniOlyqGZTnISiqGkqxnyFfCmEFvvW/mqkJFL0xspplZrAYtUasJ9Cab45XjrLaglkP2CJWiGdI4YwxewJ2mrDYfHhtLOef0jBCTreIvkThe1gQmu1J/JaX0Py/QNEj3LHlD/Y2tyAfXSqWyBcw3FE1cShnTH05m2xXHmlroTMCZAw5J2zCWpx9Iu+OG6wtpmEQSYnIGQMpb8h9PQT/4/ZBI/38+HXwxWjgBSIl83p4wtrAI+icd8k7TDmS9v7S3QssFEPG1jEkhPbCKmpHpqKa7XnJIq89Sri+uyj+nDRFgpjeHVcjciAVzcpObzno+qN/kJV/Kb3c+GSG/CBfW2LXJ1194ZB8ixgX2oXD+DhtfAaJffMN047uTpt8TAVb21hV43NxSap10Qer3ULzwkeRHV8HV+uYviNRmNYprMA7qiLgAvglzhjjNz+LSjv4O7dwQUfZlwc+1SJ4RbBB1xe3xgxxEacuzYHENv+Qr3CmdT98fzXo93uRJFRkKZB7ZSdWGDD/I3gnRxmJWMBbdSTWh/d6xpTsX7o9LBxZDLqwQnuPlZrAHC3BmbrjJrJ3N4MbZ4j0wq78s5F4lvmAXDQHPQQO0ZuojYg1sW61WReYf0gESDpI6UoMTYIyjOMyaiBol7GLQSEyGf3moN6Wms7g9Hgmt7IGCPr1up4QdE6fsD9cBpK33i6TTId/oJeZY6Tv9xYIoqtn44zy0PYMeYKu5Oc44QOvFzGKVGe8deZJWZth6zfNrb0YHRKBS3hCTOdzN1ba5po+bj55XhzD0JXuYjV6pe/HglJ1Z9NCRtbHhn93obEjnlAsYfgafN7IZQqvylB/gpMcnED6zWzZ05Rv3vg1w3x9cZH3hCKPHNV5rW6qhFg2Hy8qupAvdtYcBOsWR15RllMc3Poi5w7xrnGgwdOcFxVuMbueaRrLOKwsxm0DmEgeNu5lceAOC6YA5zHvGC/38l7b5VtjiAx/qoApMAQDBZK/9Y3dazkVeIlVhvg01pPib8lKiA0bX2cH+d/1uIzVi6x+6MmjpL6qGITjfG5e4ZlooSKZbcmzqF85po6hm/cLgorxWufRZLFrv055bBrHIGIGThqib2JJQPopDOAXok6jQIXRudk3aMCZLilJqYRsEZMmWXD1gGyiEViH1pelfr7JMW+E8gI8C2bkqTn4uycwQy91LnfogOTTw9xCuD2eGrYLksjOOabqkacBSU0vEYZmvEIFvII0QbCHfDeWcWLqmm2ZND7l9IHGvL5FbTEzYJosrXy3DdSIJFuepCPj4WF1gsw4pvy74eZ6g7TvVE59V37BmrhOguVSJwYZk8cUTaIDOKS0SOYfnBq4+UiNj+9OUdpAaiz9F26J+mzBP6LE6Cs0BjjFICOKrC7EmpQnZspEpUFjvP94Ov3GzeCX5Ua+PwXyf69+hzHDZZZZnMq7bM0obC5eICtBZ2EgZpAWSn/aoSE4w/CinmVown1nk7+ApXzsbla76LSyHAHvNfEHwSjXsi9Lwc6mxTzzFWsPC8k1DHxytYp6cBl8t86XzmGA7eR45HMsQlbhaGJOvqvx5TYk+lcs6prTdjBBKMRgMJDtJMZEeCRTNaxGNYp4ry+z9ZZnqDzyJpE0b5A7pLtY3e7cX95nfP/8PNV4LhK+hw//BJZg4DD8wIiwpe+xb7ICCpUXwTdKyC3tJAzjvkA2vgB++hJxwVh9iWxWIMrPSo9D4JQbMXc4zNmjHTl3YadMxX838dytirIk1NB3bjQUTmZ1Qhl93wanGtep9rxnDNHHvDhjQ2YxQ2h21wd2t8lM8Di8jGVUbCouKsRdEnHcnpCUjplb5AK8MygauwEYZ/wL3c/vMZjwytkkaQZYCZjHZUnGixHwSTrYAAP78qXcnb63ve0LJ0Y2GpS1xmZVz9Rl90L3oHDOpr19VV5hvnLio8rD0bEDYluyK6kRg3oeSPCBoTQOK5QKs64cGCwPktj1RVpM8Uz51BukMRaeI1AlvT2R0TZgcKVBULDovBWp+nmSVqoxOSDZUGRd30EWhyWN28vuIcyWnwfoW7e+vxEoYAHypIEOJuFiMsjoGUykg/SU7v/r2X5gAOS6sHsfqoyWfXt4ejKV+7GjgRh1aVCIRAct7LAwA1WvRriElnz+7PNK9mUjsfvHKCPx7/7vdKKtKkM5HvRJBIghspPYnOI+25rmmZrWlpENa60yf7EUe9ANkRn9I6/QJc7qLnVr22GnjZT3aRdzwqbJ8l5RF0zQegELBhOORNWXxRy/hTXfyOxzlaSVsZn6BtmJ49zQTuX5hYkdIxXC+zvWNkto4O84QhYXc/TORnD0xmsegZs1x/wAn9s8Rq6MspbwcUyicr8Uzsp7YRueLUASYCNLKQFmow2jzLxKLLBcamjEEEtvuvgG6BtDFlhAbsQN9WM5B19sW5XFxTbTkn2VAk+oezY40RwAQn6n2I4Tri4VWkeAhtjVJiN7M0mhs/L+s1V6pWtJ8XAPPhdlyN+uTJ8XVTOfFHcwtBNkWQBXVSCSGQsDx+B6xNTsU9rhIwIBfnOGVgLnwowZmqqvGU9BSjfGIk+YjApFR61HUXEySzbCEwu+cNqQ8LlzkP4mbsGvQAAA75WlJlmp/ERTspC/UsNCWC26ydO0VXWQuNJ+slYGolFAMLiNCAbxHlX9vH47jhTf4Bo12WuyTESAQOx2BbSUseSY5qI8FgTRQAf0UnK++ool953UoZ1/03QfZzLb5eFNiEEML0rtU5WeR2RCP3tHya+EW80bcapNsBAFJSwfYFLzYunQMbnVt/0GRZQ39Ty5Y/LAiZsfIVg0YQjWGl9VoWF1XJEIGiV3vXZbB0EIJXzCvcBm4kht2AC8buKj2YG3ypj5QBwafHoGU8f55S56fqCk2A2C/yZ4YoHFYhKocIf5cwgZJojOilbsd8PaiOfjA9Ut8T1FNg1dWRU6asiKAk7SZ3wv8cG0nCwa7X6Mol22X+q3nsLays9pSWoU82E+FUWRmbIwqxaaHSkIN7L4XhX9bKI77Sep5Fa8dOl+QPWM6xeYTSbRfJ/hCjH1Jo9qvUymVls2JPFJi7AdHm4sE3wUJ26vvoy1ih+VsxjMkv4V6spCFOj6ak0wvEiRcx9dpTDdlJw+js9bfmr3ExXEjaXqaV+rzPDsmIeu7bnwCut1gLe/xYV/ZZbhLWijZAa7KYiL0B3xe0rWxv/rYAuKPsgSJYSs1vMWKX9J1iprsh2v3R8jaJ8rqbvJ3ekaVz3xPt45foEkOI9jhO0c0Cr/TEj3+tzM+EYhoCIktbmySrYRHitqE4wsOapYyBOHcD40c6H1G/TLB0rnL6EWCNic9lM3arK3ZTmxU+7R0CV1rj0dxY0M2B7cZrn12I08h/+uySqSrfCcB8rsq9VNraYC/KqUdbiE1XcCEnOZFRMJeFXtwqkM0Qm64FBWnX5SOnW8z2VAoLHiKoJB2bH4m3TTPKrheC5yorJ+gNU8PgcurLu8W+HeyUmagzvrxQGICBYjxLvyjVVH/UToEC2W7GPlpuojthjY+Yx5SM1r+XovUzafTN4xVhy/YjQ3HwORUXHQOVlJ/QsRpmrkXEKaB2jQ2wh6zAWHTRT+E93+zhx8YC/r3vnDYg2igH4WG0qk/ETYsOF4LEWFZELDqx7RO6L8Kg1o0qeYMd2DZUKZ74pqSBnT53vSQ0ZyAbTsbtq6bWPofECO8XNjzfQsPuv3J+FwagnTA4GBKfVX9sOLvYAdJMIVfMsadVeDflXXGO1PyU8OFEXXOlHJs/UKbCxArsVyLndoH+qR3EsmJe2yQFX2BxtQr779/EN2sF5K1cSC+aLpAZWG1GV06x/fWyS8/euvCpkuupNPpatGtaXv5njOzEu66KEyCO3Yhah6OI40XkU9yQM1+OePHvyfjrrSopJHwGBniSnN5QYAv0cSBhA/pTFGJhd724AygNB2cWLfOgfl495TmhmUl65BEBBKtoTWk5SfgtmrlgUQ7JWIlL4bX5TIxGDOlwcZfwlGo917Gr/0pn4t6rlwMl22r8iqxbY0AOzrLU0GAfRUBRZnuO2FfE1snfdpFrVFvWqxWWCJvmVXWmqm0V9kn8eJvX6YbkHCAog0+bfAWhpSjL2bxquZ/BaxCdLKSElLZAYzF1oeKW+53O0byIw+8d4cfn5XxemGloq2BOyVA/jENw6Y8vGWDXbQXNg7+IxESS1KZGqBHfUKyblAorvJNOpX8SHzYWryyNCvXT1p7gz86Z/ZUoyhQtYBBYYxJZqEV6I4VNFWLnPZuzsEkBjJKOtuEbfFgK/MJoOFOk9+UE0deGORmTKrfFi+l9B0AI0R1FtpTMGWgzEBLtx4TP/DOp4XmzqJq2Gr4MOw7xOAtHwgO7kkBIR6hcu/Hk/TvgkP403J0nm12bVg3HTV+KLr9Sp4qLnlYyFNovqYaTbuncfBn7cbQpvAckMO4dHCYKE8444QGvnyt760OPGgDRQ+ZmlgdbTDMIgWCXqlND4Yk53kYYMnGhP8eOrvEXE8kkAE4L2j8XxDw6nn15y1Cn1SlyvU9HkbydwyO4oqWqeMbM7jOL2YqyPSQge+poCpaZuvLXrSLXqols1261tFRiXxx/OBUyXBIATLaAjUjoJx4d9TUJ8NbxMNEnx6vu16d/uKf3i3aEC52/DZ8drsHv5oX0hChKTuOYamoMB4qsB/T7+ker28JdGkdDtopyYAl4qp/I5S5bThAG7Cllh9rUPda4og/ypw0xgSqMUCyto+1rRcA9ns2HuNiQYLDwcDIIaKxlutY/mcxHZ4Ms51KM8rKOIWgoRHS3yq8A/pkzdVUrlSagBzOeXv6B9VJfJJzzPdgU/jQvrM7oXM6bqUU/sO/86RDIvNYW0hB+zNafo/dDAFmSdZQpUkw3Rysj4gaG92WWaUDGcr2XpP0iHPHB8KaA/uUJ9CeCMmwwI+oDQ5MxAfScHje+8OzgZ5vxFeXJqrw9kIdJq4N3emG1f9JZ2dZajII5rlk80mAqT5DWagHsC8Vu4RGKKrB6AsKCBcOxwlXe2TA6Z3IdND2Zvxg2mKWBJGspO4AwddOtq+0Le1WtSBiBMSR9tMCfu+VZ44dDXV90ETq6j6G9cfONcbYKftxV1CPz9c9jMNNqTSKucWjIM0cWIegjCslvHV/ikGwu7Qh6aDHq1hUxqdnd9JANbSztHRlIMDW6idvoxWKrdx3Sb38GDN+x/d0O7T/FPMAORuDw8HlhoAXqheOyw+2LeJXkTuUaDGUJyqNIWSVV/IMu+s0Utzl9rNmNU4c4AX7vwBleh3S8aAHhYlS3Y83OZ+L0eCoKg9kgHLJVx/le83cw0Il5pceBHo+x1Y3cnOOAe4M8f4XsBWhEH49TFujqnqgZNpbwmLZg+pObivAqBhBEYCwAGmShpSYixkxSPU+m2guOy7WbMJABYb/wd5jjGyx8bS9pliiDvSYs4pdhlCeIgJKzlYj87K6r3bs+k+MJpmZNWXn8WTNL1LSO0u7ZJrd8h3V3xqYfdjZwoygmUl6eQ7rIn5tupwAu6G4YC7zWX7BOybP2DgGiGeQHQUADfZXM0Hro9ad+uMS+B/UClVSC1A/MNic2ktlrmnPKOHaxL99JWYIVKeJcqlTJpqYxGphAZlFp+1y0gc1D+AAeKWHtwOW3flLnUBNJHf7wHlBDqSIRYh7+ZVUfKJvFeSMA3tgrS/XCgr6X5TbqFs5+Td+JuNAAOpBqZ6bDwgp4WMsmeOBWtIlLIDQ/UJtHN2oRwwbIll/Xye7mftfpjxIuIBekUOhpJIPHRqiQduinoqhalO4tWU4ygFXwxM/MdOyAFWYDzyyKqNYXE1AkzHmoJNGa9wt8abynGOIaf2ODVz8DrX02SuaXGY2E+vkq6GUDB20Rbk/47Hcv+nFQXpy1sP6NkICRA7IeUi66yf1iyk9RSPgZLw7VGOT62VFBtkPQJ+9d3zt0OYwVi4D/OSn42tLPDC8bYs87rqHQsU0NMFYiFxH1SNy/0wspUCB20UiBxsIYFvkRmwb3TPb9fgojI77+O1dHvzossQcLdtuk/khjcMJmAwjByHqKTkguWh4zamvHlrSp9bonhHTgeCT5OPwCyz8sSh3TL3Ll+dxNc/FZtltPmG1yMW4lxx7GNhmKBP0HnycnB18+TXAbA4tAAzoEKR4w7hVdYvCSbqTw2XBnvmAYORVsYznza0PrA61dPJlUXeII31jOt0LkMnW3plVQ+uXGATz0RQ38gcJ13TPLKM3krCYPh0EBk8JJi/lgm3uk5TPrOjuZ+klq2kh3K8uHlbhsBk5Y1I7Z7e4uLmtJQP6PSQWz4j2DsQyEEX+DXeiVIqrU1AhxUSePqSo7UyQ9Cbm/Is/Xy4j/no4+9QmTLj5lfTFnworwW7zmj/qXt93sPiqqeZ1b5Gt8ZPtg2TrM86QHphJYXqWoslCKvIzs5IASijbgLRz9MpFyfLutNo46Y/vkZtnuqKPCEpTw6P2KUZvgm7x4IqaSBeytKMtfE/N0xy5thyQxTd3sXIncd0GPHwTW25TNfaPiTETUt7oUflCQREoT0BDwHMA8ri3TKbQnyGhfoUehAelN+38NEA8mo6ykPAAKATmMyT09P4vgGew9GoWyr82RJ5aytgEmWEDwAjdoqe+tulaKnACgMB6DEA9JlrdEJ30AhAIvYoeDVUy6QVea97sghquZ7aA7wPmYqT5k4ipXppdIzbjDnKFyrTiuz7xYgeiVtPr7G7dQasGcS8L2CIH9e5+s/5t0K3Ag+VeIpyU2y1a4N7brS7HXvRHqFEN1f0dq9JjkKZOLrcLQkHnpboEGqF6+tpIIDIGeRi0pfAwwhvAsHNmLIlJ+a/8ajKot9FX1UJ4c0l0MK11h/gCpAoy6KwLZHZdHvIFtl6qc9QmzAWC3/djLHnyrKBdbJOqo341tkxgTlLffbyXghbr3YsDsoz1YTR0QKjHLGObGkkE+nG7zJ4LVk94JMcu55I1B02tANQPAxV0yuCMLULxNdsHkI87q/0q6aDNEpjX1/XMrmw8TygkBROc+pYveV/q1izSFusI/E/skl1St+Vyy8/xfGXVnQEjDl8mgXHVjDSjtMBQjD6Hb+1PfOIN78F8hs9wRfD9/1kGVZqeABxO3FxUwflSQc+CSWeuOotUX6hvLc7exuB/vqbU2juB8ahFHIU876c+rutVEYE4pcVvEBApSNWfNb/damxKKKhP38zqRYnD+ueMTf//IDIqW/t+GV/qfPKNl8uaqA3VXiF8WZCXU6tgKsNAUkklLFwBuku94Jc/eogXP50JZ294DrxpnWe2SJzbJUgCiyWK3OIeMviKDTR5LSM8Tis6YdDQ8gxWsv5SEqk4RM9VwrYUMjBOhHpp+itlQzxUqFaydW+qUIz3XA0oTjY1RQhHL4VByngOCN/My+GxsleFW6ngOUnNN5WOm8sZBtx97LFiTU8OOIr159TvImN/y3P1F6nhUbL7twllmn3NEzpHFgwitFh0t5FvpghljiBszIPhQWvW6iNs76PKLulaYK2YgG0PDmqF9jSNSHGQYwJqu2hfFQ8RKAtjuU6JDpjJlVvgZoYitEqhf+Xs/Q9S+YnzD9l9X05ooqTiIsfA201kfWAJMYVxFlALr0dNA0uC1rO9Gu+rBiwFVJKXm3u8bFo+yeDEm8s6fk1HO7HPcD+2gX9o44Ma2tljRjTKFRmgOo0wA4y2Qq9RzNbJTA5c1AAmEsEOBuxAU3LWbuLNIblROeDaxty+V4rNYyHWcX0eLkfKHpqe3HjAto22qQC6l161fWESe0bcvu+17ypVtN4BVjoUtb+UI8tIdGFHgjWBvYI0tH0ZJpukGPbtE6k2z1esb8LG/L/sFwJy5te43FvEdqg1PcnRPVBTXjxuhzXoxUBoXf17sgjyM1rtSApFTcfx0C9rtNUnWfpk61T4nYs/el0A/D85D5vh0STIp0rc5+RVgfL8oolkXWd1TvxL9EL7IdnYbnPs+Wx0HcwKMbW5EEVx1+NxdwAJRCTBa88g5nblR5NqVF2Nxx+1mMKzss51ugU/6/HWXWdwnjvYCurSpSb/zYKeKcwNibyp/XvSIfKo1o7zKfjq5LSRxVv6Z5cJQmeSuBjRTTb5lRw6LftqxaDrFenqYsViA9vsiuWsegfDzj7rZrnujucaLqqbsER0Yy44HIwjEm4fUOvNI4VLqfi8wcyz9m5zX8KCKWMmm29990OVDhhEpAvyqcVsX+htvd9vSI1Q91drzucIZ8tyaMjO4UCLH2o0pV7OuSqQZUpxzi1LBPoNK788G7toGOvKadjXWjukWQuMAA7nizVGXfVB0l3VNh+zXjDBmb90PdrhwyXUSUWGSjJ7D7q5Rx39bl5n75mu4FP2v9qG2cL6y3s9fNSb3cZGXuOcb//enZ5hmS6joBgH9O3t34WuVtlE76hWeUIziCC+McELrAtdnlSMFSDeZP+STMHL6FZ6w8BvNOsPTm5KXuiGGyHCeAW9jwbHKnO9PvZeZJlF7p+z01kDzdu4GJp0q1tb7ihhU/jZYWhDfms9DIF7MpumW9JnJVfxMsAam+O1dpQDyikD/FVzzY7qDW+MQV13OV/uqKUDeaHkpSJhc5dcHyXXmVtLWSdSptznBjqDdfrbvg4luiUEA4C5QpXVVJhQuYjL7xC7sdF2pbeNb7un+9MhbqxOLe7BZ1oj3IzI2h8estOZPMmIykfa+Ftb7/CTW95cq8bxiR11bCzpw8331YfLO/t+B6IYYwmNkxt5k8uAaSXLPVSvtYLz4DHyJu59zJoIHTx/8l6bARaxB4fyGE3ZQetw6dyJtGpVuw3BhgKfUZVuJ7GMCdvw0cwR2efNmWLiL7vqpCapTmcDdbN7Po6LcJqoNVPuDambcMkZV/ZyVQx64bjFAQuEr1Ei//vPdkyG8S7/pM4CmNFtx3x672l73ArhKczekH/kaymsL8Zroxacke89EOLbs4UVFtWKAqyRCitE/o9ji86msoeEmUEUcgBBg1NZtYcerQXkX8YiV6KX7mhQ8BZudcTe2qHb23cRgx/Bp4gzHTr14ZwhYv8ueToK8ygqgC3dNVvqJkTs4myWAr8bHlQfgj9NuFOmXHyv20a+EIjB3O3ei8TKUg4GB16L7PY+ghybEXodB2cNaSqZQkim70AZVEMUcUKkhQrfudBH5L5Wt+XJ+ZWfgXQT6Ep7yHxF4ASKyoL+RReuACWJKKvQJsC7amYUSyprb1xKeICLCbE3hEytYgiOhBke1t9oSfS01rwo5cRzyEVniXCadvU2QsepEa9/q5qJINui2Bdibyc3cahx5eAAXZOlIP6yyKhNFYZzsY2QlY9zdBVkC91+RdjRN/BrB6C8965OU4E6dkQL5xZqWI5L3kBQb6dq0QpB/YgLIDjA61NGgZ+3R2iLmPwdg6FEoBAeQtSEfsWLuIKrSGBmBw1zDIJ0ag4EH/sqHx8byuCxn9LJOtbqdjLeHhZpussK6ewct9vb+MzHKLoj+dIxPs4h2KwSogxT49jPHvzE5Mza3jf7LvT5Mv4Fce0PSI0wH+vkdsD6KiOZ0D/ZddjoXjcJmBlJLP+AiT81hZuq5iNeA2Mobida0a+W6oeFwzjld0ICnnP1Nr07yYCC+i9GSBfEKpmiXIaHjtfNuywjWahujCqlaZT+zTFuROff8nBu31sX7YvlKUltBLAiIU1K0jiPNo/K6fpi8unTK+cNjbBY0fXvubFkdekTHrk6rDkjRRCeM4FMWN9IUwFA2XOi6x8cZW44Pcs/HEtXfs+5xuebLLlW2IZZJuMpvEquGEMIgSvj+K4t8EIbpRFWfCfKx0Tisv+/v0zfw3ztVeAU7UZXP+N8H3FYBkw+p3I8cy2rIpfMQHT0fkV0pf4k91FrREz2d1FaeetbVcTclagW/K8yTCjfZQTa3DKXhjuuSdxMdZNy/2psVr+tYyNodk1j1siLdjCRR1PLhQ+qCKjLf/Egap292pbPwU24MAuhJAFVYNMFzc6oBB8gAjY6Cq1y+JujyPHk5aZ3iw2RW9d3GjHAN6HrdXYo+qcbTQWLurhP8xc1Km+PKmv9/SxuiC/wV93Q3vCvwpCoUfTb5WVp4wV09Q7Fx3VocbzrWckaJe5xjHYW0k0Ixrga+376z5+8WDldt0J/vprCBRXky6sivC1kapaK3R1+P70CzJbcnhwhXEO+9tpyBORYkMB2tKu+08S2pd/g7t75x9jxXSR4lYXLkS6JFIKbS7mV0NvCCzm14iC8TMkh7aw1P1f4GlwbLISRnUWAoRzO0q9ReOfX8q+MFL7cUTyOGcIOxoirO/e6PVYax+m1wDGKjW7M8TiWAic2HzBlADOR8HBTrOnEHq/RUSr7AQLa5mhIy6v8je+PAE2txG5lJwGW4FGLy/dqwrui1XtfrCxYapN9j7hEbzPupd7IzSKrMdtvklHYafG8g6IEYrM4lkEH4jjmo/FuTDtRl7NnYDAkD0x5Dzu0VLMvqWlpY6uuib7ZyUyHugHvHmnpLbYMmeFsmoqhoLGXGbk+zZ0rwYgxmNXDhNGtuqEs5n7kqFhH+V/xKi6tS4fCaGC2ocIjJsyLZRjRsMVt7qJsP5lj2A652UaJENkywuaVvyHv3xZXQKn0C67Vl3nxwLbYwsIuUJOMCSu+KZ32ABFPJZHVtyyR6sHdQqsHouL7VJcv3NfthEaQxsqOgCwCWimoT27NiWT1H/ntwClekxT6nG/ocXDbfviGxkULxz5Q+6xQ4m3qI57g0N+xOnUouaU8zVc92AoV0TYSWmS2nzkFqsyyEyDqOjQsm9zMknlvebR2wxakcxOjb6BHABhsGfG6O/IFkaENeFFbcTMDbRf6Gdb+pAbRQkbyB7l8NvEJRsy8+luGNJK7Y65nLuKLcGyc10vPAD4MyNT12fP4DmGhA5X2TJ8e4g93fvmMji1z9HvkePNBsQco3ajKgUMo9zBekGe27LGFHYHj4EIr0u0WOM4Gtpm5N2nE+5bRdiyJFoF2LKKYSFZ/UdDMByvWSX8R5Fv2lX7OaaTqI7jAEWPgO55ZnYzjdFBwGA9mm3wK7Yf6cwDmhqtBYGxFD+GuvHub3e7BCJWPyxoVo9xQ5IrM2/GYkWrIHTPfWkfSazCiLGIO9pLfLgLU0FdtuA8uxNYFuy1IdMYX/GrjogufveUn9iEv1Q6YOr/cacQ//sfHs7w0bFVbeoTvAdVVG6uIRx5noJmc3CrzPrPpMTQ0MunWwyUtM4CO80Z4F5b3OOpgc9oaMos7cAo06cr7wO1VRH7Wjti2a66d1udPnTPUwXZwMYQ61FE0SoD8S8BPfnLoxTgelDXObyyfEmow4Xk1c6pKfSMpaLulHM0y+pPk+T8rPp7jdMTj0QqFbg5zK+529c1m4P9ffMHFij0KN6SJRyocTwJJe2HaB/Wldk8Lfz0pxfrSJaCcZnpjCb7CswBhHpKf1hRz+X0CyOYLQtTbWtzn91tvNgaMuH2o55XCRNzW7/BnQrpV/efv9Jgg45+JI7BdO5B7I3Votl8i6EXMZm7cZymuR3K1/T8b3l3HzsQNGxbixWBbzCut7ECf/uTpDkOzRTsaSJGKoew7m4ZLxyY0A5GbOcCtOMhWSs1Y3p+cJvFdvYpuT9qrIV8xQCummRqq6/6Qmh7B+kD4P78poDItBH/GRAvApJMlql+sLcRQhIrm9GI6VFhvRqO7MnSSIzIOYyZ5iMnO6QwDngYOmBsfdsqfmQeCfSrmQ+uAFKsMsWpMmHKQsW352UTIfxB80BqyaFZCi5ZPK37RomnejGqT82eMD6NauELS9lDnWn/0Ws/Kk5FEW69y8cKiLI9bzc+jaa84EAOSLgjwcNfpUo0RfePz0ZXhMCnekUa6eHJueyZtNl4wN/Rxopx7CPc7N9YCerkcaQjsOsUSNSntk8jio+2eZvK/iejw+kI+UxSxlZEft14ptwOYwCE5VfVgAYAHsNdmbGmElGvhHbUkDHtiLyDGPzt7/ujyzVSsIwjJI0yCEbDFNN+/y2Bam3/BFINBeYbnzR2Q3hMqQ5bNrGh/BCMzMTnXDcHub/XRYXEIyy9CScuKp4tuYGi9yX+VQIIBeWiDp1a1miHrsD2BzbaUHSyYqaBtA4FW31C8YJjUEXe85A01qkydIb+IirrJvcxdXkMKPf4uwQtbkc9+EamsNgWCJ6MiNDkGE4p/BGUhlxoNZ7ZRRN9uitVINqmQXGWjSqsea4i3lqvBXcxuUZethEd2Lao8qoUBNWeGBOmy2YL7bbEgLpQj8n73U2S7fG9PmkFurvAmEP7R4jXXR6kIFohJnrZBzk0aRgf/AWbvtYeVkhp75T955k9f+GAjQJEJ8EET+EbgPZ9TgINBLEEaA8oLMX0QyNxcrIZSRwy1fVKdZYKnFtscZCiOCo6LF1GJxr64w+y/zyKb0oLid9Ow5+tJD7C/96dhx5g5CVBLKdQYBrUmTLLAfahwo4Me5tbM2aj0HKm3rLVXQn6q4biChM7SrySpAQQrfOyq4r5Kt77O1brH+tRCDBVuPhqUvfGbGuXagBz7FtdAcl16hNVJJOV0287VBoKbojgA5FCcr+jAxYrsW0Sw42H+HCkyMqEbgmrL32ufbF1aQkzO9hhsM2dE0V/sH7kEEhWzdqx8d4xrMupETP7hrGgalV7qU3JWnoNSg/7k5JSNfxuiQkiNATwRazYjfTQbXW7fvc/iZEdBsMXyA4wLo2nuShkRpL6NzlVtdvUEZzSXfACh7rUAXetve7T3HA3tPs6QizYMo2yD7T/T52InA3Fi9qnL3kLTxS3s2K4Pq/WfvylvXEvjMy3yFTZnHQ88VSiG0hHtoGIRrdHOPcSFqKTOyuijUGCTQbWu2sHA1MnBb5ui4k412VUzH1TN4fWA1Dob4TO3fZcyMl0ObrM7QTII+8KKiN3/JtIrXvg5sgHF+tqg4hVGG5KLxDCWtAekgByszDPbFNb3jA8TyjerJ90fTUS4A5D5b4F8D5GV71jqaejlryQP84UxxJeJ9sNIjZ500OjL/5DvQjpgUyK1BwoCwcz/rWxCiRlgPfIyD+qbbqwQU23wFcYoUNfJnF941Us2kALnZH8TwufgWsHDlbZZ197bk4bUUj2NslmLYhS8J6dNfEStxLwlXHyZGnz71a1MiG/+Bb5DLUJ4cpt8FPgCyBwbzkNHEbBKGru2L8+/0rezykGo3RRh6NXqKrVjIF+cJr6bIj0y1KRIlvWCJmxHD0sXWBVT3MU8i0n8GptGY9tagidcuBkG8GKSx0S/oSQaxIN1medfoxTXPvlyCp5V1ZacvXToBL2k4D9LlZxZuUeB+tzIb1LvPYvo57xNKcMvsX7t8FMv4DG4xcQ3e5WXOde3pG2/WrBQcs2BvPuNaxdCTNLS8VQsBHQ3oy1RvyX7EkHYp6SNdPO7wHpWvZlM4slBrigXMCMmHRQT/6PBeeCLc7+nNTSRziOw78PUZLZ7RsYA1HPDxrgER8eKs/poBZREDbdCczNSpuzbX49Cd7pzxTSsPYBcG+kPRAiJxkhD1ga6ZLgHD/j6/L5NqHpaWZV7EPY4oZvSw2xxSPxRAEk5agYjsboe10405QwHq/Wgj3EhJv8AnmTTnNuJKY7UZNXVY5h5HCosC/FNYfAPTLmVEXCzsyVkyCVOuAubtNsh1M4TjCKum9Lecy6Dyn8AFx7lke+sk0ynfCfb+lsxSJRzRZT8hg8/RFKQ+UWPklmZmp45hNvU1E2723DNdKaJ57futCR9Y2VJ6V/T54+XsaYebdtyeW80VllDBlKtrZVBMt0DT/beH6Eqdo8qSjmHYK2z7waoDwXLrQCssTR4JHRF0GAoAPef3iSinBwMHmY4Dz/jbUenqBTiRqERPBLaq8549hE+rb3fluzmYm6x+JeYwdKG9AVqihEjNPTeH9vfC2pg6iJIV2XBiPn/NCthcHvX99wGb2Ide7euefiC6ig7aJIWIQtCxRqT7MGPCEJVdvViO17F5NS+2l451j+xumCVQdhmbTEkw3a/puD6spTq4wPuW4lTjOyAsDY/nirakxvgrERlLva0DOT6Zxqq70oV1WcrytMRmqgcua1zp6VurWLZG9vm4UZl91yBnOZr0CIkSWXUazFxtn8Sz0LVHhYZxa0aXH3GfTmKwGkadyh1+N7UBVKsnRr5+86gZ4Kcyb4f7nniSBZ7aZpKKno3OLfah7+AGRVOmig62KAiT3M2Z2JDkyA/xO7S9tv3Vd+ZnGGsBvFxvZ7NI1SCAkVI3aY4M7zqEfPehIFH7cKRUDE8dMSaE0vxWjEtwCdLw4+ypGkktDHFBKxVXFVSLi7M3YJcE42prYFo/R3D+BXSbAfzoYKz+5B8Lx9CAN5w6lKJkWHfMmGlYFf4L0TejuC684u105wiDmegp9xfrUdZ42UM8AJPIPmFSYeniHMD2u/4IXgiNS8vLOSl3YbI7CBLcMjWtOmrfD3Y4ensn+OtG0dz2/vYeMjs3pjzPo+fOg4EDj3lhVFLa0YBiNe3hcYkv+iAFENs/Fw+Fz4wKD0BYXwCMD2Kdp8VnuqefcPFq8UTVmbdhPI1k26MNOUbQ3ICPVM7cTxvid61U4SkMhBOxvAoi2OGUKcjJlB0/RnMhW9pU+881DwByWfvYDvk60eF4sVUSnTqarpTwBK82Fmd2D3Sqm8txcF8f2pcwSJN2IRSpSK2ZMcB+p0LvzSQKxBxciQjtaKYqB9nuVc0vWeUKSPUF9rz/EDPd9x2pkKmNtAFJqPQOXii61F9CpjO5A8qQJji3Xjy2CoO8mnNPlkPoxZEvrSFZVGpbu0a+mx3pIQtxKvy8ry6zzN6A4JIRBe/Fsd9qonH8jRHm0G3LmQMkX9YjdMrMi/JD2jpelCprlYYEtGFSqQ47sbiwsGCJjUne5cw/MRXAg/32Q8HRDXmKDjb496PsPNz5AXL9TU9/lGjROIZeXocZYAdFk4OF/AbIVpHtwwtrlHyq+t77i36YAZTJExp0v41c24JOPbRG8duPgg4+o1Q95ko3BfIWb9FquMu/C58NSkhf0Kq99BTiz0VbTcPs3oJdeIrn7hCYNhV4tyDJxWo6If5K09b4Jj9YQl/0raee59uyrk3MlcAAAAAAAG2WZW1CWFtfnRk8N0XdkdLCIK2ECfVQ81DnMfOrxx6aDZKUqD+Cp4gfbWvlT6cqfOsD9rV7RI0xPx5VT1H4zlsEMcW6LG9EGXUAO44KOgLjrW5O9b9odCa0wnAb3bM1qtDbeDMhDbW4OHBebW1swG0F+oaJ+wIqEKHZ13rJszHY5BWEHWsjyGOKWO/Cy1ykpOSzckuezIAgDGoA2Nb+R43CUEoLolIRgniAjm1gGDchxIDJZf9INAmf0O008Vl+8qQsM9W6JsZ0SOD0iiklWxkPPZQCi8ehmkDommFxT6zIStn4hYgqLrCdrAdmE0wxnlTsjnc0YfUoAXjeNCWUP269wGUAIPsAQ8WAilZpjWBxOlJfttY9C3Zn3v6J1hoHBYdaIrHlDqNCIlyeVneBBDhe9sHP3QpfRuxitZmRUbD9ToMx9wAw0z4HKGDBRJM9zHGKbPXytY96oDFsB+AGgruOwJ2MEsnIePf9YpHxEbdhHfkaGOAY0rtssUJUQPuv4qre+LIN7ltSn9zcIN3oseMBKnNKco2HRCh8m0hfCWQCVfZRbn5PF3SiIejrSHNOE9SNb/YkJgxRIdFIJJrqO0dsQyJsuj2xiBqHSq2ej+EJ1l85RG7ljMU+p+3NbfPYN1OjuILCfWDpthlp2Qn5HYA02FtdJaPewnfb/nx6nmLMM6p+LNCS7Qd/y9a5HS7622FJpzHZd2OtXLwSps5xbmbK7/Wy6PsHW60G3X+NGRC9324LRCOCXkJqceoh9o4CNKJPF9AvgMM+zW3m8aek9Wt8axNi6Yt8t7l5AAAAAH2/osUKsBwJcXDq+Bugs09n4JbSfDFdQSI0SI8JcpV9ESUgZ/KuAYKFnVaJSNQAYrq9KhEr8zoTVLWMKR3FkHz53nAEfsDG1xmDd1aP0nqqZxBGjxvzhYJaJJAHI7l+L/1orJs0dwkAdPT1KoOPuWb2k6itD7a7Vdtpd4BOC8KuR+/yNts93HQBbFL9qtDk83cStsM7VKbnwBOqyZJPnTcyNeahEBdrVCRp/a0Q1qEgpgvTUWc661YscFWwwWJ800fQYKfTwtH6Ih3adKdPkYA3bN/J8Q2cQL9a98MrhMBQjIkjvznQaItfanwnF0gZUMe6QOutTdthqs1IiO/P8hK7ctF+uQhoOIDVUR52+LDRHTQFm0+NrYEdNK11OjJpp1My82uba434FwIhmXpusngCPZh5GT/dVpmw8kxkrI+bMdUs6mjsUktK5avhrnqzUXkLcs6RVSN3cUcMOzxdBo1pF+OxNZx3OrKtSZQp/QIYyCcbUuWkxdsHWAxTsnIMRGJLTIq5DjT6CjM6jD8BPnfdqE2/Cmeq2k/kk9KnA5vyuWFAlW4CUaeb5bImSxTqz5+KZdUdFgQdzh/OG0AYDht2ED1Imh5RgIanKLDUE5fDVvMN3b9+3+ZKFWrSBAm2gI8BetC7W8AgDVcfu0GDXikZ5U81XWE09uIVPW8PClvCmJ9hmxHw0DBNw8+xYf/6aqoME/djr+gWBeA6z6RYpllbAA4zw+1lTcQtcRN9cmZrcaDmxT8plpd8wAfvAgDhRvFlahT4pqOSKcjABUCt1/keTkR+VPrUHU7zzRoP6pqmABsBYS5mRIdoXEgXkvDNxM/ElncNPMKU7kqDUz8MiwnizSOKGF/wxCXbBEZGE1k7V1SDHhmL9Q+xBfJqTpdNReHgXPMo21YRsGken04ZThGELsuRvDvuWtxErLyROSnJ9AlmmUtd5c5oGlDwD6TmYTMBEpTCbB/VpiO/isnBeKgsTWs7KpCzBQxiB5/qei8YRUS6uq6vRSjdxGqWzmQIXvoAAA=" alt="Хадиджа Умм Ильяс" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 60%;">
               </div>
             </div>
-            <div style="font-family: 'Marck Script', cursive; font-size: clamp(30px,4.6vw,42px); color: #f0d79a; line-height: 1;">Хадиджа Умм Ильяс</div>
+            <div style="font-family: 'Marck Script', cursive; font-size: clamp(30px, 4.6vw, 42px); color: #f0d79a; line-height: 1;">Хадиджа Умм Ильяс</div>
           </div>
-          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(20px,5vw,56px); margin: 34px 0 30px;">
-            <div style="text-align: center;"><div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px,5vw,48px); color: #f0d79a; line-height: 1;">7+</div><div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d9bd7e; margin-top: 6px;">лет опыта</div></div>
+
+          <div data-reveal="rise" style="transition-delay: 280ms; display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(20px, 5vw, 56px); margin: 34px 0 30px;">
+            <div style="text-align: center;"><div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px, 5vw, 48px); color: #f0d79a; line-height: 1;">7+</div><div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d9bd7e; margin-top: 6px;">лет опыта</div></div>
             <div style="width: 1px; align-self: stretch; background: linear-gradient(180deg, transparent, rgba(201,162,75,.5), transparent);"></div>
-            <div style="text-align: center;"><div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px,5vw,48px); color: #f0d79a; line-height: 1;">4000+</div><div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d9bd7e; margin-top: 6px;">сестёр прошло</div></div>
+            <div style="text-align: center;"><div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px, 5vw, 48px); color: #f0d79a; line-height: 1;">4000+</div><div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d9bd7e; margin-top: 6px;">сестёр прошло</div></div>
             <div style="width: 1px; align-self: stretch; background: linear-gradient(180deg, transparent, rgba(201,162,75,.5), transparent);"></div>
-            <div style="text-align: center;"><div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px,5vw,48px); color: #f0d79a; line-height: 1;">5</div><div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d9bd7e; margin-top: 6px;">детей</div></div>
+            <div style="text-align: center;"><div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(34px, 5vw, 48px); color: #f0d79a; line-height: 1;">5</div><div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d9bd7e; margin-top: 6px;">детей</div></div>
           </div>
-          <p style="max-width: 620px; margin: 0 auto; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.78; color: #e8d8c0;">Профессиональный организатор быта и пространства, автор курсов по организации домашнего хозяйства и заготовкам. Уже более 7 лет помогает сёстрам выстраивать систему быта, которая освобождает время для семьи, получения знаний, поклонения и других важных дел.</p>
+
+          <p data-reveal="rise" style="transition-delay: 380ms; max-width: 620px; margin: 0 auto; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.78; color: #e8d8c0;">Профессиональный организатор быта и пространства, автор курсов по организации домашнего хозяйства и заготовкам. Уже более 7 лет помогает сёстрам выстраивать систему быта, которая освобождает время для семьи, получения знаний, поклонения и других важных дел.</p>
         </div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: clamp(44px,6.5vw,68px) 0;" data-reveal="fade">
-      <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,162,75,.6));"></div>
-      <img src="flowers/figs.png" alt="" style="width: clamp(118px,17vw,180px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.5)); animation: om-fl-c 8s ease-in-out infinite;">
-      <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, rgba(201,162,75,.6), transparent);"></div>
-    </div>
-        <div data-reveal="rise">
-          <h2 style="margin: 0 0 28px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px,3.4vw,34px); color: #f1e4ce;">Что вы получите после эфира</h2>
+
+        <!-- floral medallion -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: clamp(44px, 6.5vw, 68px) 0;">
+          <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,162,75,.6));"></div>
+          <img src="flowers/figs.png" alt="" style="width: clamp(118px, 17vw, 180px); height: auto; pointer-events: none; filter: drop-shadow(0 16px 32px rgba(0,0,0,.5)); animation: om-fl-c 8s ease-in-out infinite;">
+          <div style="flex: 1; max-width: 150px; height: 1px; background: linear-gradient(90deg, rgba(201,162,75,.6), transparent);"></div>
+        </div>
+
+        <!-- ===== Что вы получите ===== -->
+        <div>
+          <h2 data-reveal="rise" style="margin: 0 0 28px; text-align: center; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 34px); color: #f1e4ce;">Что вы получите после эфира</h2>
           <ul style="list-style: none; margin: 0 auto; padding: 0; max-width: 600px; display: flex; flex-direction: column; gap: 16px;">
-            <li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Понятную систему, которая поможет перестать ежедневно думать, что приготовить.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Понимание, как облегчить быт без сложных схем и многочасовых заготовок.</span></li><li style="display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px,1.9vw,18px); line-height: 1.62; color: #e8d8c0;">Первый шаг к более спокойной и организованной кухне.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 100ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Понятную систему, которая поможет перестать ежедневно думать, что приготовить.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 240ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Понимание, как облегчить быт без сложных схем и многочасовых заготовок.</span></li>
+            <li data-reveal="rise-sm" style="transition-delay: 380ms; display: flex; gap: 16px; align-items: flex-start;"><span style="flex: 0 0 auto; width: 7px; height: 7px; margin-top: 11px; transform: rotate(45deg); background: #c9a24b;"></span><span style="font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(15px, 1.9vw, 18px); line-height: 1.62; color: #e8d8c0;">Первый шаг к более спокойной и организованной кухне.</span></li>
           </ul>
         </div>
-        <div style="margin-top: clamp(48px,7vw,70px); text-align: center;" data-reveal="zoom">
-          <button id="ctaBtn" class="om-cta" style="display: inline-block; border: none; padding: 20px 56px; border-radius: 4px; background: linear-gradient(95deg,#a9842f,#f4e3a4 40%,#c9a24b 60%,#fff4cf 80%,#a9842f); background-size: 200% auto; animation: om-shimmer 7s linear infinite; box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(201,162,75,.35), 0 0 48px rgba(201,162,75,.2); font-family: 'Spectral', serif; font-weight: 500; font-size: clamp(16px,2vw,19px); letter-spacing: .26em; text-transform: uppercase; color: #4a0c1c; cursor: pointer;">Иду на эфир</button>
-          <div style="margin-top: 16px; font-family: 'Spectral', serif; font-style: italic; font-size: 14px; color: rgba(217,189,126,.75);">Участие бесплатное · количество мест ограничено</div>
+
+        <!-- CTA -->
+        <div data-reveal="zoom" style="margin-top: clamp(48px, 7vw, 70px); text-align: center;">
+          <div class="om-cta-wrap" data-cta-wrap>
+            <button id="ctaBtn" style="display: inline-block; border: none; text-decoration: none; padding: 20px 56px; border-radius: 4px; background: linear-gradient(95deg, #a9842f, #f4e3a4 40%, #c9a24b 60%, #fff4cf 80%, #a9842f); background-size: 200% auto; animation: om-shimmer 7s linear infinite; box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(201,162,75,.35), 0 0 48px rgba(201,162,75,.2); font-family: 'Spectral', serif; font-weight: 500; font-size: clamp(16px, 2vw, 19px); letter-spacing: .26em; text-transform: uppercase; color: #4a0c1c; cursor: pointer; transition: transform .3s ease;">Иду на эфир</button>
+          </div>
+          <div style="margin-top: 16px; font-family: 'Spectral', serif; font-style: italic; font-size: 14px; color: rgba(217,189,126,.75);">Участие бесплатное</div>
         </div>
+
       </div>
     </div>
 
-    <!-- SHARE -->
-    <div style="margin-top: 30px; position: relative; background: linear-gradient(165deg, rgba(36,16,22,.92), rgba(20,9,13,.92)); border: 1px solid rgba(201,162,75,.32); border-radius: 8px; padding: clamp(34px,5vw,54px) clamp(26px,5vw,56px); box-shadow: 0 30px 70px rgba(0,0,0,.5); overflow: hidden;" data-reveal="rise">
-      <img aria-hidden="true" src="flowers/br-05.png" alt="" class="om-hide-mobile" style="position: absolute; top: 12px; left: 12px; width: 130px; opacity: .4; pointer-events: none;">
-      <img aria-hidden="true" src="flowers/br-05.png" alt="" class="om-hide-mobile" style="position: absolute; top: 12px; right: 12px; width: 130px; opacity: .4; pointer-events: none; transform: scaleX(-1);">
-      <img aria-hidden="true" src="flowers/br-09.png" alt="" class="om-hide-mobile" style="position: absolute; bottom: 12px; left: 12px; width: 140px; opacity: .38; pointer-events: none;">
-      <img aria-hidden="true" src="flowers/br-09.png" alt="" class="om-hide-mobile" style="position: absolute; bottom: 12px; right: 12px; width: 140px; opacity: .38; pointer-events: none; transform: scaleX(-1);">
+    <!-- ===== SHARE: отправь сестре ===== -->
+    <div style="margin-top: 30px; position: relative; background: linear-gradient(165deg, rgba(36,16,22,.92), rgba(20,9,13,.92)); border: 1px solid rgba(201,162,75,.32); border-radius: 8px; padding: clamp(34px, 5vw, 54px) clamp(26px, 5vw, 56px); box-shadow: 0 30px 70px rgba(0,0,0,.5); overflow: hidden;">
+
+      <!-- single gold branches in the four corners (drawn as lines on reveal) -->
+      <img aria-hidden="true" src="flowers/br-05.png" alt="" data-reveal="draw" class="om-hide-mobile" style="position: absolute; top: 12px; left: 12px; width: 130px; opacity: .4; pointer-events: none;">
+      <img aria-hidden="true" src="flowers/br-05.png" alt="" data-reveal="draw" class="om-hide-mobile" style="position: absolute; top: 12px; right: 12px; width: 130px; opacity: .4; pointer-events: none; transform: scaleX(-1);">
+      <img aria-hidden="true" src="flowers/br-09.png" alt="" data-reveal="draw" class="om-hide-mobile" style="position: absolute; bottom: 12px; left: 12px; width: 140px; opacity: .38; pointer-events: none;">
+      <img aria-hidden="true" src="flowers/br-09.png" alt="" data-reveal="draw" class="om-hide-mobile" style="position: absolute; bottom: 12px; right: 12px; width: 140px; opacity: .38; pointer-events: none; transform: scaleX(-1);">
+
+      <!-- scattered single petals around the share block (each in a parallax wrapper) -->
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="0.18" style="position: absolute; left: 38%; top: -22px; width: 78px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-03.png" alt="" style="display: block; width: 100%; opacity: .9; transform: rotate(-18deg); animation: om-pet-c 11s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));"></div>
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="-0.14" style="position: absolute; right: 6%; top: 30%; width: 78px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-11.png" alt="" style="display: block; width: 100%; opacity: .9; transform: rotate(28deg); animation: om-pet-d 12s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));"></div>
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="0.22" style="position: absolute; left: -18px; top: 46%; width: 68px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-08.png" alt="" style="display: block; width: 100%; opacity: .85; transform: rotate(58deg); animation: om-pet-a 10s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));"></div>
+      <div class="om-parallax om-hide-mobile" data-parallax-rate="-0.18" style="position: absolute; right: -16px; top: 52%; width: 66px; pointer-events: none; z-index: 1;"><img aria-hidden="true" src="flowers/pet-12.png" alt="" style="display: block; width: 100%; opacity: .85; transform: rotate(-42deg); animation: om-pet-b 11s ease-in-out infinite; filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));"></div>
+
       <div style="position: relative; text-align: center; z-index: 2;">
-        <div style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .38em; text-transform: uppercase; color: #d9bd7e;">Поделитесь добром</div>
-        <h2 style="margin: 12px 0 0; font-family: 'Marck Script', cursive; font-size: clamp(30px,5vw,44px); color: #f0d79a; line-height: 1.1;">Отправьте это письмо сестре</h2>
-        <p style="max-width: 480px; margin: 14px auto 0; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(14px,1.8vw,16px); line-height: 1.7; color: #d8c6ac;">Впишите имя сестры и тёплые слова — она получит это же приглашение, открытое лично для неё.</p>
+        <div data-reveal="rise" style="font-family: 'Spectral', serif; font-size: 12px; letter-spacing: .38em; text-transform: uppercase; color: #d9bd7e;">Поделитесь добром</div>
+        <h2 data-reveal="rise" style="transition-delay: 140ms; margin: 12px 0 0; font-family: 'Marck Script', cursive; font-size: clamp(30px, 5vw, 44px); color: #f0d79a; line-height: 1.1;">Отправьте это письмо сестре</h2>
+        <!-- velvet ribbon that unfurls under the heading -->
+        <div data-reveal="ribbon" style="transition-delay: 280ms; margin: 22px auto 0;">
+          <img src="flowers/ribbon-trim.png" alt="" class="om-ribbon-img">
+        </div>
+        <p data-reveal="rise" style="transition-delay: 360ms; max-width: 480px; margin: 14px auto 0; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(14px, 1.8vw, 16px); line-height: 1.7; color: #d8c6ac;">Впишите имя сестры и тёплые слова — она получит это же приглашение, открытое лично для неё.</p>
       </div>
-      <div style="position: relative; max-width: 480px; margin: 30px auto 0; display: flex; flex-direction: column; gap: 18px; z-index: 2;">
+
+      <div data-reveal="rise" style="transition-delay: 420ms; position: relative; max-width: 480px; margin: 30px auto 0; display: flex; flex-direction: column; gap: 18px; z-index: 2;">
         <div>
           <label style="display: block; font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 8px;">Имя сестры</label>
-          <input id="toName" placeholder="Аиша" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.28); border: 1px solid rgba(201,162,75,.3); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none;">
+          <input  id="toName" placeholder="Аиша" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.28); border: 1px solid rgba(201,162,75,.3); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none;">
         </div>
         <div>
           <label style="display: block; font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 8px;">Несколько тёплых слов · по желанию</label>
-          <textarea id="shareMsg" rows="2" placeholder="Подумала о тебе и захотела поделиться…" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.28); border: 1px solid rgba(201,162,75,.3); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none; resize: vertical;"></textarea>
+          <textarea  id="shareMsg" rows="2" placeholder="Подумала о тебе и захотела поделиться…" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.28); border: 1px solid rgba(201,162,75,.3); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none; resize: vertical;"></textarea>
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
-          <button id="copyBtn" class="om-sharebtn" style="flex: 1 1 150px; min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px 18px; border: 1px solid rgba(201,162,75,.5); border-radius: 4px; background: rgba(201,162,75,.08); color: #f0d79a; font-family: 'Spectral', serif; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;">Скопировать ссылку</button>
-          <a id="waBtn" class="om-sharebtn" href="#" target="_blank" rel="noopener" style="flex: 1 1 150px; min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px 18px; border-radius: 4px; background: rgba(201,162,75,.08); border: 1px solid rgba(201,162,75,.5); text-decoration: none; color: #f0d79a; font-family: 'Spectral', serif; font-size: 14px; letter-spacing: .12em; text-transform: uppercase;">WhatsApp</a>
-          <a id="tgBtn" class="om-sharebtn" href="#" target="_blank" rel="noopener" style="flex: 1 1 150px; min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px 18px; border-radius: 4px; background: rgba(201,162,75,.08); border: 1px solid rgba(201,162,75,.5); text-decoration: none; color: #f0d79a; font-family: 'Spectral', serif; font-size: 14px; letter-spacing: .12em; text-transform: uppercase;">Telegram</a>
-        </div>
-        <div style="position: relative; display: flex; justify-content: center; margin-top: 6px;">
-          <img aria-hidden="true" src="flowers/wax.png" alt="" style="width: clamp(150px,22vw,220px); height: auto; transform: rotate(-6deg); pointer-events: none; filter: drop-shadow(0 18px 28px rgba(0,0,0,.6));">
+
+        <div style="position: relative; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+          <button id="copyBtn" style="flex: 1 1 150px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 15px 18px; border: 1px solid rgba(201,162,75,.5); border-radius: 4px; background: rgba(201,162,75,.08); color: #f0d79a; font-family: 'Spectral', serif; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer;" id="copyLabel">Скопировать ссылку</button>
+          <a href="#" id="waBtn" target="_blank" rel="noopener" style="flex: 1 1 150px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 15px 18px; border-radius: 4px; background: rgba(201,162,75,.08); border: 1px solid rgba(201,162,75,.5); text-decoration: none; color: #f0d79a; font-family: 'Spectral', serif; font-size: 14px; letter-spacing: .12em; text-transform: uppercase;">WhatsApp</a>
+          <a href="#" id="tgBtn" target="_blank" rel="noopener" style="flex: 1 1 150px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 15px 18px; border-radius: 4px; background: rgba(201,162,75,.08); border: 1px solid rgba(201,162,75,.5); text-decoration: none; color: #f0d79a; font-family: 'Spectral', serif; font-size: 14px; letter-spacing: .12em; text-transform: uppercase;">Telegram</a>
         </div>
       </div>
     </div>
+
+    <div style="text-align: center; margin-top: 34px; font-family: 'Spectral', serif; font-style: italic; font-size: 14px; color: rgba(217,189,126,.55);">С любовью к сёстрам</div>
   </div>
 </div>
 
-<!-- REGISTRATION MODAL -->
-<div id="modalOverlay" style="position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,4,6,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
-  <div id="modalBox" style="position: relative; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; padding: clamp(32px,5vw,48px) clamp(24px,5vw,44px); background: linear-gradient(165deg, #6a1228 0%, #560f22 40%, #420c1b 100%); border: 1px solid rgba(201,162,75,.4); border-radius: 8px; box-shadow: 0 40px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(201,162,75,.18); animation: om-modal-in .42s cubic-bezier(.2,.7,.3,1) both;">
+<!-- ===================== REGISTRATION MODAL ===================== -->
+<div id="modalOverlay" style="position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(8,4,6,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" id="closeModal">
+  <div  id="modalBox" style="position:relative;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:clamp(32px,5vw,48px) clamp(24px,5vw,44px);background:linear-gradient(165deg,#6a1228 0%,#560f22 40%,#420c1b 100%);border:1px solid rgba(201,162,75,.4);border-radius:8px;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(201,162,75,.18);animation:om-modal-in .42s cubic-bezier(.2,.7,.3,1) both;">
+
+    <!-- gold corner branches inside the modal -->
     <img aria-hidden="true" src="flowers/br-05.png" alt="" style="position: absolute; top: 10px; left: 10px; width: 110px; opacity: .35; pointer-events: none;">
     <img aria-hidden="true" src="flowers/br-05.png" alt="" style="position: absolute; top: 10px; right: 10px; width: 110px; opacity: .35; pointer-events: none; transform: scaleX(-1);">
+
+    <!-- close button -->
     <button id="closeModal" aria-label="Закрыть" style="position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(201,162,75,.3); background: rgba(0,0,0,.25); color: #d9bd7e; font-size: 18px; line-height: 1; cursor: pointer; z-index: 3;">×</button>
 
-    <div id="regForm" style="position: relative; z-index: 2;">
+    <!-- FORM state -->
+    <div id="regForm" style="position:relative;z-index:2;">
       <div style="text-align: center;">
         <div style="font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .38em; text-transform: uppercase; color: #d9bd7e;">Регистрация на эфир</div>
-        <h2 style="margin: 12px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(26px,4vw,34px); color: #f7eedd; line-height: 1.18;">Оставьте контакты</h2>
-        <p style="max-width: 380px; margin: 14px auto 0; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(14px,1.6vw,16px); line-height: 1.62; color: #d8c6ac;">Пришлём вам ссылку на эфир и доступ к закрытому Telegram-каналу с полезными материалами.</p>
+        <h2 style="margin: 12px 0 0; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(26px, 4vw, 34px); color: #f7eedd; line-height: 1.18;">Оставьте контакты</h2>
+        <p style="max-width: 380px; margin: 14px auto 0; font-family: 'Spectral', serif; font-weight: 300; font-size: clamp(14px, 1.6vw, 16px); line-height: 1.62; color: #d8c6ac;">Пришлём вам ссылку на эфир и доступ к закрытому Telegram-каналу с полезными материалами.</p>
       </div>
+
       <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 28px;">
         <div>
           <label style="display: block; font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 8px;">Имя</label>
-          <input id="regName" type="text" placeholder="Ваше имя" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none;">
+          <input id="regName" type="text" placeholder="Ваше имя" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none; transition: border-color .2s ease;">
         </div>
         <div>
           <label style="display: block; font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 8px;">Телефон</label>
-          <input id="regPhone" type="tel" placeholder="+7 (___) ___-__-__" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none;">
+          <input  id="regPhone" type="tel" placeholder="+7 (___) ___-__-__" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none; transition: border-color .2s ease;">
         </div>
         <div>
           <label style="display: block; font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 8px;">Email</label>
-          <input id="regEmail" type="email" placeholder="name@example.com" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none;">
+          <input  id="regEmail" type="email" placeholder="name@example.com" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none; transition: border-color .2s ease;">
         </div>
         <div>
           <label style="display: block; font-family: 'Spectral', serif; font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #d9bd7e; margin-bottom: 8px;">Telegram-ник</label>
-          <input id="regTg" type="text" placeholder="@username" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none;">
+          <input  id="regTg" type="text" placeholder="@username" style="width: 100%; padding: 14px 16px; background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,75,.32); border-radius: 4px; color: #f6ecda; font-family: 'Spectral', serif; font-size: 16px; outline: none; transition: border-color .2s ease;">
         </div>
       </div>
-      <div id="regError" style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 4px; background: rgba(180,40,60,.18); border: 1px solid rgba(220,70,90,.4); font-family: 'Spectral', serif; font-size: 13px; color: #f4c4ca; text-align: center;"></div>
-      <button id="submitReg" style="width: 100%; margin-top: 22px; padding: 17px 22px; border: none; border-radius: 4px; background: linear-gradient(95deg,#a9842f,#f4e3a4 40%,#c9a24b 60%,#fff4cf 80%,#a9842f); background-size: 200% auto; animation: om-shimmer 7s linear infinite; box-shadow: 0 14px 32px rgba(0,0,0,.45), 0 0 0 1px rgba(201,162,75,.35); font-family: 'Spectral', serif; font-weight: 500; font-size: 15px; letter-spacing: .22em; text-transform: uppercase; color: #4a0c1c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
-        <span id="spinner" style="display: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(74,12,28,.3); border-top-color: #4a0c1c; animation: om-spin .7s linear infinite;"></span>
+
+      <div id="regError" style="display:none;margin-top:14px;padding:10px 14px;border-radius:4px;background:rgba(180,40,60,.18);border:1px solid rgba(220,70,90,.4);font-family:'Spectral',serif;font-size:13px;color:#f4c4ca;text-align:center;"></div>
+
+      <button   id="submitReg" style="width:100%;margin-top:22px;padding:17px 22px;border:none;border-radius:4px;background:linear-gradient(95deg,#a9842f,#f4e3a4 40%,#c9a24b 60%,#fff4cf 80%,#a9842f);background-size:200% auto;animation:om-shimmer 7s linear infinite;box-shadow:0 14px 32px rgba(0,0,0,.45),0 0 0 1px rgba(201,162,75,.35);font-family:'Spectral',serif;font-weight:500;font-size:15px;letter-spacing:.22em;text-transform:uppercase;color:#4a0c1c;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:12px;">
+        <span id="spinner" style="display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(74,12,28,.3);border-top-color:#4a0c1c;animation:om-spin .7s linear infinite;"></span>
         <span id="submitLabel">Зарегистрироваться</span>
       </button>
+
       <div style="margin-top: 14px; text-align: center; font-family: 'Spectral', serif; font-style: italic; font-size: 12px; color: rgba(217,189,126,.6); line-height: 1.5;">Мы не передаём ваши данные третьим лицам</div>
     </div>
 
-    <div id="regSuccess" style="display: none; position: relative; z-index: 2; padding: 14px 0;">
+    <!-- SUCCESS state -->
+    <div id="regSuccess" style="display:none;position:relative;z-index:2;padding:14px 0;">
       <div style="width: 88px; height: 88px; margin: 0 auto 24px; border-radius: 50%; border: 1.5px solid rgba(201,162,75,.55); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 38px rgba(201,162,75,.25);">
-        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#f0d79a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17 19 7" stroke-dasharray="60" stroke-dashoffset="60" style="animation: om-check .7s .2s ease forwards;"></polyline></svg>
+        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#f0d79a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="5 12.5 10 17 19 7" stroke-dasharray="60" stroke-dashoffset="60" style="animation: om-check .7s .2s ease forwards;"></polyline>
+        </svg>
       </div>
-      <h2 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(26px,4vw,32px); color: #f7eedd; text-align: center;">Вы зарегистрированы</h2>
-      <p style="max-width: 360px; margin: 14px auto 0; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: 16px; line-height: 1.62; color: #ecdcc4;">Нажмите кнопку ниже, чтобы войти в закрытый Telegram-канал — там будет ссылка на эфир.</p>
-      <a id="tgChannelLink" href="#" target="_blank" rel="noopener" style="display: block; margin: 24px auto 0; max-width: 280px; padding: 16px 28px; border-radius: 4px; background: linear-gradient(95deg,#a9842f,#f4e3a4 40%,#c9a24b 60%,#fff4cf 80%,#a9842f); background-size: 200% auto; animation: om-shimmer 7s linear infinite; text-align: center; text-decoration: none; font-family: 'Spectral', serif; font-weight: 500; font-size: 14px; letter-spacing: .2em; text-transform: uppercase; color: #4a0c1c;">Перейти в Telegram-канал</a>
+      <h2 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(26px, 4vw, 32px); color: #f7eedd; text-align: center;">Вы зарегистрированы</h2>
+      <p style="max-width: 360px; margin: 14px auto 0; text-align: center; font-family: 'Spectral', serif; font-weight: 300; font-size: 16px; line-height: 1.62; color: #ecdcc4;">На эту страницу придёт ссылка на Telegram-канал — нажмите её, чтобы войти.</p>
+      <a id="tgChannelLink" href="#" target="_blank" rel="noopener" style="display: block; margin: 24px auto 0; max-width: 280px; padding: 16px 28px; border-radius: 4px; background: linear-gradient(95deg, #a9842f, #f4e3a4 40%, #c9a24b 60%, #fff4cf 80%, #a9842f); background-size: 200% auto; animation: om-shimmer 7s linear infinite; text-align: center; text-decoration: none; font-family: 'Spectral', serif; font-weight: 500; font-size: 14px; letter-spacing: .2em; text-transform: uppercase; color: #4a0c1c;">Перейти в Telegram-канал</a>
     </div>
   </div>
 </div>
+
 
 <script>
 (function(){
   "use strict";
 
-  /* ============================================================
-     НАСТРОЙКИ — меняйте только этот блок
-     ============================================================ */
+  /* ===== НАСТРОЙКИ ===== */
   var CONFIG = {
-    // Дата и время эфира (показывается в блоке «Когда»)
     eventDate: "19 июля в 19:00 по Мск",
-    // Ссылка на ваш закрытый Telegram-канal (куда попадёт человек после регистрации)
     tgChannelUrl: "https://t.me/+N4VjxVjJsIdiMWYy",
-    // Адрес Google-таблицы (Apps Script Web App). Как получить — см. инструкцию.
     formEndpoint: "https://script.google.com/macros/s/AKfycbymWf7xE_SSlfKyyHQo60l4CjtlRg0hlhLomx3mZRaPqFJOJwn_UfeUufyJT-YRHD1O/exec"
   };
-  /* ============================================================ */
+  /* ===================== */
 
   var $ = function(id){ return document.getElementById(id); };
+  function setText(id,t){ var e=$(id); if(e) e.textContent=t; }
+  function setHref(id,h){ var e=$(id); if(e) e.href=h; }
 
-  // подставляем дату и ссылку
-  $("eventDate").textContent = CONFIG.eventDate;
-  $("tgChannelLink").href = CONFIG.tgChannelUrl;
+  // дата эфира (по зацепке data-event-date)
+  document.querySelectorAll("[data-event-date]").forEach(function(el){ el.textContent = CONFIG.eventDate; });
+  setHref("tgChannelLink", CONFIG.tgChannelUrl);
 
-  // персонализация из ?to= и ?msg=
-  var recipient = "", personalMsg = "";
-  try {
-    var p = new URLSearchParams(location.search);
-    recipient = (p.get("to") || "").trim();
-    personalMsg = (p.get("msg") || "").trim();
-  } catch(e){}
-  if (recipient) {
-    $("openLabel").textContent = "Дорогая " + recipient;
-    $("greet").style.display = "block";
-    $("greetLine").textContent = "Дорогая " + recipient + ",";
-    if (personalMsg) {
-      $("persoMsg").style.display = "block";
-      $("persoMsg").textContent = personalMsg;
-    }
+  // персонализация ?to= / ?msg=
+  var recipient="", personalMsg="";
+  try{ var p=new URLSearchParams(location.search);
+    recipient=(p.get("to")||"").trim(); personalMsg=(p.get("msg")||"").trim();
+  }catch(e){}
+  if(recipient){
+    setText("openLabel","Дорогая "+recipient);
+    var g=$("greet"); if(g) g.style.display="block";
+    setText("greetLine","Дорогая "+recipient+",");
+    if(personalMsg){ var pm=$("persoMsg"); if(pm){ pm.style.display="block"; pm.textContent=personalMsg; } }
   }
 
-  /* ---------- открытие конверта ---------- */
-  var opened = false;
+  /* ===== открытие конверта ===== */
+  var opened=false;
   function openLetter(){
-    if (opened) return;
-    opened = true;
-    var glow = $("glow"), env = $("envImg"), scene = $("scene"),
-        letter = $("letter"), instr = $("instr");
-    // вспышка золота
-    glow.style.opacity = "1";
-    glow.style.transform = "translate(-50%,-50%) scale(1.9)";
-    env.style.transform = "scale(1.16)";
-    env.style.opacity = "0";
-    env.style.filter = "drop-shadow(0 30px 60px rgba(0,0,0,.55)) brightness(1.5)";
-    instr.style.opacity = "0";
+    if(opened) return; opened=true;
+    var glow=$("glow"),env=$("envImg"),scene=$("scene"),letter=$("letter"),instr=$("instr");
+    if(glow){ glow.style.opacity="1"; glow.style.transform="translate(-50%,-50%) scale(1.9)"; }
+    if(env){ env.style.transform="scale(1.16)"; env.style.opacity="0"; env.style.filter="drop-shadow(0 30px 60px rgba(0,0,0,.55)) brightness(1.5)"; }
+    if(instr) instr.style.opacity="0";
     setTimeout(function(){
-      scene.style.opacity = "0";
-      scene.style.transform = "scale(1.14)";
-      scene.style.filter = "blur(7px)";
-      scene.style.pointerEvents = "none";
-      letter.style.opacity = "1";
-      letter.style.transform = "translateY(0)";
-      letter.style.pointerEvents = "auto";
-      runReveal();
-    }, 1050);
+      if(scene){ scene.style.opacity="0"; scene.style.transform="scale(1.14)"; scene.style.filter="blur(7px)"; scene.style.pointerEvents="none"; }
+      if(letter){ letter.style.opacity="1"; letter.style.transform="translateY(0)"; letter.style.pointerEvents="auto"; }
+      initReveal(); initParallax();
+    },1050);
   }
-  $("envClick").addEventListener("click", openLetter);
+  var ec=$("envClick"); if(ec) ec.addEventListener("click",openLetter);
 
-  /* ---------- появление блоков при скролле ---------- */
-  function runReveal(){
-    var els = document.querySelectorAll("#letter [data-reveal]");
-    if (!("IntersectionObserver" in window)) {
-      els.forEach(function(el){ el.setAttribute("data-reveal-in","1"); });
+  /* ===== посимвольная разбивка для data-reveal="char" ===== */
+  function splitChars(){
+    document.querySelectorAll('#letter [data-reveal="char"]').forEach(function(el){
+      if(el.dataset.split) return; el.dataset.split="1";
+      var txt=el.textContent, frag=document.createDocumentFragment();
+      for(var i=0;i<txt.length;i++){
+        var s=document.createElement("span");
+        s.textContent=txt[i]===" "?"\u00a0":txt[i];
+        s.style.display="inline-block";
+        s.style.transform="translateY(-22px)"; s.style.opacity="0";
+        s.style.transition="opacity 600ms cubic-bezier(.2,.7,.3,1) "+(i*32)+"ms, transform 600ms cubic-bezier(.2,.7,.3,1) "+(i*32)+"ms";
+        frag.appendChild(s);
+      }
+      el.textContent=""; el.appendChild(frag); el.__chars=el.querySelectorAll("span");
+    });
+  }
+  function fireChars(el){
+    var sp=el.__chars||el.querySelectorAll("span");
+    sp.forEach(function(s){ s.style.transform="translateY(0)"; s.style.opacity="1"; });
+  }
+
+  /* ===== scroll reveal ===== */
+  function initReveal(){
+    splitChars();
+    var els=document.querySelectorAll("#letter [data-reveal]");
+    if(!("IntersectionObserver" in window)){
+      els.forEach(function(el){ el.setAttribute("data-reveal-in","1"); if(el.getAttribute("data-reveal")==="char") fireChars(el); });
       return;
     }
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(en){
-        if (en.isIntersecting){
+    var io=new IntersectionObserver(function(ents){
+      ents.forEach(function(en){
+        if(en.isIntersecting){
           en.target.setAttribute("data-reveal-in","1");
+          if(en.target.getAttribute("data-reveal")==="char") fireChars(en.target);
           io.unobserve(en.target);
         }
       });
-    }, { root: $("letter"), threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    },{root:$("letter"),threshold:.12,rootMargin:"0px 0px -8% 0px"});
     els.forEach(function(el){ io.observe(el); });
   }
 
-  /* ---------- поделиться ---------- */
+  /* ===== параллакс ===== */
+  function initParallax(){
+    var letter=$("letter"); if(!letter) return;
+    var items=letter.querySelectorAll("[data-parallax-rate]");
+    if(!items.length) return;
+    var ticking=false;
+    function upd(){
+      var h=letter.clientHeight, st=letter.scrollTop;
+      items.forEach(function(el){
+        var rate=parseFloat(el.getAttribute("data-parallax-rate"))||0;
+        var r=el.getBoundingClientRect();
+        var center=r.top+r.height/2-h/2;
+        el.style.setProperty("--py",(center*rate*-0.12).toFixed(1)+"px");
+      });
+      ticking=false;
+    }
+    letter.addEventListener("scroll",function(){ if(!ticking){ requestAnimationFrame(upd); ticking=true; } });
+    upd();
+  }
+
+  /* ===== флип-карточки расписания ===== */
+  document.querySelectorAll(".om-daycard").forEach(function(card){
+    card.addEventListener("click",function(){ card.classList.toggle("is-flipped"); });
+  });
+
+  /* ===== поделиться ===== */
   function buildUrl(){
-    try {
-      var u = new URL(location.href);
-      u.search = "";
-      var to = $("toName").value.trim();
-      var m = $("shareMsg").value.trim();
-      if (to) u.searchParams.set("to", to);
-      if (m) u.searchParams.set("msg", m);
+    try{ var u=new URL(location.href); u.search="";
+      var to=($("toName")?$("toName").value:"").trim();
+      var m=($("shareMsg")?$("shareMsg").value:"").trim();
+      if(to) u.searchParams.set("to",to);
+      if(m) u.searchParams.set("msg",m);
       return u.toString();
-    } catch(e){ return location.href; }
+    }catch(e){ return location.href; }
   }
-  var shareText = "Приглашаю вас на бесплатный эфир «5 шагов, как навсегда избавиться от вопроса \u00abЧто приготовить?\u00bb»";
+  var shareText="Приглашаю вас на бесплатный эфир «5 шагов, как навсегда избавиться от вопроса \u00abЧто приготовить?\u00bb»";
   function refreshShare(){
-    var url = buildUrl();
-    $("waBtn").href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + url);
-    $("tgBtn").href = "https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(shareText);
+    var url=buildUrl();
+    setHref("waBtn","https://wa.me/?text="+encodeURIComponent(shareText+" "+url));
+    setHref("tgBtn","https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(shareText));
   }
-  $("toName").addEventListener("input", refreshShare);
-  $("shareMsg").addEventListener("input", refreshShare);
+  if($("toName")) $("toName").addEventListener("input",refreshShare);
+  if($("shareMsg")) $("shareMsg").addEventListener("input",refreshShare);
   refreshShare();
 
-  $("copyBtn").addEventListener("click", function(){
-    var url = buildUrl(), btn = $("copyBtn");
-    function done(){ btn.textContent = "Ссылка скопирована"; setTimeout(function(){ btn.textContent = "Скопировать ссылку"; }, 2200); }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(done, function(){ fallbackCopy(url); done(); });
-    } else { fallbackCopy(url); done(); }
+  if($("copyBtn")) $("copyBtn").addEventListener("click",function(){
+    var url=buildUrl();
+    function done(){ setText("copyLabel","Ссылка скопирована"); setTimeout(function(){ setText("copyLabel","Скопировать ссылку"); },2200); }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){fb(url);done();}); }
+    else { fb(url); done(); }
   });
-  function fallbackCopy(text){
-    try {
-      var ta = document.createElement("textarea");
-      ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      document.execCommand("copy"); document.body.removeChild(ta);
-    } catch(e){}
-  }
+  function fb(t){ try{ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);}catch(e){} }
 
-  /* ---------- модалка регистрации ---------- */
-  function openModal(){
-    $("modalOverlay").style.display = "flex";
-    $("modalOverlay").style.animation = "om-fadein .3s ease";
-    $("regForm").style.display = "block";
-    $("regSuccess").style.display = "none";
-    $("regError").style.display = "none";
-  }
-  function closeModal(){ if (!submitting) $("modalOverlay").style.display = "none"; }
-  $("ctaBtn").addEventListener("click", openModal);
-  $("closeModal").addEventListener("click", closeModal);
-  $("modalOverlay").addEventListener("click", function(e){ if (e.target === $("modalOverlay")) closeModal(); });
-  document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeModal(); });
+  /* ===== модалка ===== */
+  var submitting=false;
+  function openModal(){ var o=$("modalOverlay"); if(!o)return; o.style.display="flex"; o.style.animation="om-fadein .3s ease"; if($("regForm"))$("regForm").style.display="block"; if($("regSuccess"))$("regSuccess").style.display="none"; if($("regError"))$("regError").style.display="none"; }
+  function closeModal(){ if(submitting)return; var o=$("modalOverlay"); if(o)o.style.display="none"; }
+  if($("ctaBtn")) $("ctaBtn").addEventListener("click",openModal);
+  if($("closeModal")) $("closeModal").addEventListener("click",closeModal);
+  if($("modalOverlay")) $("modalOverlay").addEventListener("click",function(e){ if(e.target===$("modalOverlay")) closeModal(); });
+  if($("modalBox")) $("modalBox").addEventListener("click",function(e){ e.stopPropagation(); });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeModal(); });
 
-  var submitting = false;
-  function showErr(msg){ var el = $("regError"); el.textContent = msg; el.style.display = "block"; }
-  ["regName","regPhone","regEmail","regTg"].forEach(function(id){
-    $(id).addEventListener("input", function(){ $("regError").style.display = "none"; });
-  });
+  function showErr(m){ var e=$("regError"); if(e){ e.textContent=m; e.style.display="block"; } }
+  ["regName","regPhone","regEmail","regTg"].forEach(function(id){ if($(id)) $(id).addEventListener("input",function(){ if($("regError"))$("regError").style.display="none"; }); });
 
-  $("submitReg").addEventListener("click", function(){
-    if (submitting) return;
-    var name = $("regName").value.trim();
-    var phone = $("regPhone").value.trim();
-    var email = $("regEmail").value.trim();
-    var tg = $("regTg").value.trim();
-    if (!name) { showErr("Укажите имя"); return; }
-    if (!phone) { showErr("Укажите телефон"); return; }
-    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showErr("Проверьте email"); return; }
-    if (!tg) { showErr("Укажите Telegram-ник"); return; }
+  if($("submitReg")) $("submitReg").addEventListener("click",function(){
+    if(submitting) return;
+    var name=($("regName")?$("regName").value:"").trim();
+    var phone=($("regPhone")?$("regPhone").value:"").trim();
+    var email=($("regEmail")?$("regEmail").value:"").trim();
+    var tg=($("regTg")?$("regTg").value:"").trim();
+    if(!name){ showErr("Укажите имя"); return; }
+    if(!phone){ showErr("Укажите телефон"); return; }
+    if(!email||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ showErr("Проверьте email"); return; }
+    if(!tg){ showErr("Укажите Telegram-ник"); return; }
 
-    submitting = true;
-    $("spinner").style.display = "inline-block";
-    $("submitLabel").textContent = "Отправляем…";
+    submitting=true;
+    if($("spinner")) $("spinner").style.display="inline-block";
+    setText("submitLabel","Отправляем…");
 
-    var entry = {
-      name: name, phone: phone, email: email,
-      telegram: tg[0] === "@" ? tg : "@" + tg,
-      from: recipient || "",
-      submittedAt: new Date().toISOString()
-    };
+    var entry={ name:name, phone:phone, email:email, telegram:(tg[0]==="@"?tg:"@"+tg), from:recipient||"", submittedAt:new Date().toISOString() };
+    try{ var k="om-efir-registrations"; var a=JSON.parse(localStorage.getItem(k)||"[]"); a.push(entry); localStorage.setItem(k,JSON.stringify(a)); }catch(e){}
 
-    // локальная подстраховка
-    try {
-      var key = "om-efir-registrations";
-      var arr = JSON.parse(localStorage.getItem(key) || "[]");
-      arr.push(entry); localStorage.setItem(key, JSON.stringify(arr));
-    } catch(e){}
-
-    function finish(){
-      submitting = false;
-      $("spinner").style.display = "none";
-      $("submitLabel").textContent = "Зарегистрироваться";
-      $("regForm").style.display = "none";
-      $("regSuccess").style.display = "block";
-    }
-
-    var hook = (CONFIG.formEndpoint || "").trim();
-    if (hook) {
-      fetch(hook, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(entry)
-      }).then(finish, finish);
-    } else {
-      setTimeout(finish, 600);
-    }
+    function finish(){ submitting=false; if($("spinner"))$("spinner").style.display="none"; setText("submitLabel","Зарегистрироваться"); if($("regForm"))$("regForm").style.display="none"; if($("regSuccess"))$("regSuccess").style.display="block"; }
+    var hook=(CONFIG.formEndpoint||"").trim();
+    if(hook){ fetch(hook,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(entry)}).then(finish,finish); }
+    else { setTimeout(finish,600); }
   });
 
 })();
